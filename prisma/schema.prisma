@@ -1,0 +1,78 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String   @id @default(auto()) @map("_id") @db.ObjectId
+  email         String   @unique
+  passwordHash  String?
+  name          String?
+  role          String   @default("USER")
+  googleId      String?  @unique
+  authProvider  String   @default("EMAIL")
+  emailVerified Boolean  @default(false)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model EmailOtp {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  email     String
+  code      String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@index([email])
+}
+
+model HeroSetting {
+  id                 String   @id @map("_id")
+  mediaType          String   @default("video")
+  mediaUrl           String   @default("")
+  cloudinaryPublicId String?
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+}
+
+model Product {
+  id                 String   @id @default(auto()) @map("_id") @db.ObjectId
+  name               String
+  slug               String   @unique
+  description        String?
+  detailsHtml        String?
+  category           String
+  originalPrice      Float
+  priceAfterDiscount Float?
+  badge              String?
+  imageUrl           String
+  hoverImageUrl      String?
+  imagePublicId      String?
+  hoverImagePublicId String?
+  galleryImageUrls      String[] @default([])
+  galleryImagePublicIds String[] @default([])
+  stock              Int      @default(0)
+  status             String   @default("DRAFT")
+  isPopular          Boolean  @default(false)
+  deliveryType       String   @default("FREE")
+  deliveryCharge     Float?
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+}
+
+model InboundSubmission {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  type      String
+  firstName String?
+  lastName  String?
+  email     String
+  phone     String?
+  message   String?
+  status    String   @default("NEW")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}

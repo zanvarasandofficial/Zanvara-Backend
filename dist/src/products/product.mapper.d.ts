@@ -1,0 +1,26 @@
+import type { Product } from '@prisma/client';
+export type PublicProduct = {
+    id: string;
+    slug: string;
+    name: string;
+    description: string | null;
+    detailsHtml: string | null;
+    category: string;
+    price: number;
+    originalPrice: number | null;
+    discountPercent: number | null;
+    image: string;
+    hoverImage: string;
+    galleryImages: string[];
+    badge: string | null;
+    stock: number;
+    deliveryType: string;
+    deliveryCharge: number | null;
+};
+export declare function hasProductDiscount(product: Pick<Product, 'originalPrice' | 'priceAfterDiscount'>): boolean;
+export declare function getSellingPrice(product: Pick<Product, 'originalPrice' | 'priceAfterDiscount'>): number;
+export declare function getDiscountPercent(product: Pick<Product, 'originalPrice' | 'priceAfterDiscount'>): number | null;
+export declare function mapProductToPublic(product: Product): PublicProduct;
+export declare function slugifyName(name: string): string;
+export declare function normalizeBadge(badge: string | null | undefined): string | null;
+export declare function normalizeDetailsHtml(html: string | null | undefined): string | null;
