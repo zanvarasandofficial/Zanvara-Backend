@@ -73,6 +73,15 @@ export declare class UsersService {
         createdAt: Date;
         updatedAt: Date;
     } | null, null, import("@prisma/client/runtime/library").DefaultArgs>;
+    updateRole(id: string, role: Role): import(".prisma/client").Prisma.Prisma__UserClient<{
+        id: string;
+        email: string;
+        name: string | null;
+        role: string;
+        authProvider: string;
+        emailVerified: boolean;
+        createdAt: Date;
+    }, never, import("@prisma/client/runtime/library").DefaultArgs>;
     listStorefrontUsers(): import(".prisma/client").Prisma.PrismaPromise<{
         id: string;
         email: string;

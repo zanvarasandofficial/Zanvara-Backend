@@ -30,10 +30,25 @@ let UsersService = class UsersService {
         });
     }
     findByGoogleId(googleId) {
-        return this.prisma.user.findUnique({ where: { googleId } });
+        return this.prisma.user.findFirst({ where: { googleId } });
     }
     findById(id) {
         return this.prisma.user.findUnique({ where: { id } });
+    }
+    updateRole(id, role) {
+        return this.prisma.user.update({
+            where: { id },
+            data: { role },
+            select: {
+                id: true,
+                email: true,
+                name: true,
+                authProvider: true,
+                emailVerified: true,
+                role: true,
+                createdAt: true,
+            },
+        });
     }
     listStorefrontUsers() {
         return this.prisma.user.findMany({

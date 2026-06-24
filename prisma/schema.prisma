@@ -13,7 +13,7 @@ model User {
   passwordHash  String?
   name          String?
   role          String   @default("USER")
-  googleId      String?  @unique
+  googleId      String?
   authProvider  String   @default("EMAIL")
   emailVerified Boolean  @default(false)
   createdAt     DateTime @default(now())
@@ -35,6 +35,18 @@ model HeroSetting {
   mediaType          String   @default("video")
   mediaUrl           String   @default("")
   cloudinaryPublicId String?
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+}
+
+model StoreCategory {
+  id                 String   @id @default(auto()) @map("_id") @db.ObjectId
+  name               String   @unique
+  slug               String   @unique
+  imageUrl           String   @default("")
+  imagePublicId      String?
+  sortOrder          Int      @default(0)
+  isActive           Boolean  @default(true)
   createdAt          DateTime @default(now())
   updatedAt          DateTime @updatedAt
 }

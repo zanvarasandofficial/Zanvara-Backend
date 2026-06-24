@@ -18,6 +18,7 @@ const health_module_1 = require("./health/health.module");
 const inbound_module_1 = require("./inbound/inbound.module");
 const prisma_module_1 = require("./prisma/prisma.module");
 const products_module_1 = require("./products/products.module");
+const categories_module_1 = require("./categories/categories.module");
 const settings_module_1 = require("./settings/settings.module");
 const users_module_1 = require("./users/users.module");
 let AppModule = class AppModule {
@@ -36,6 +37,7 @@ exports.AppModule = AppModule = __decorate([
             admin_module_1.AdminModule,
             settings_module_1.SettingsModule,
             products_module_1.ProductsModule,
+            categories_module_1.CategoriesModule,
             inbound_module_1.InboundModule,
             health_module_1.HealthModule,
         ],

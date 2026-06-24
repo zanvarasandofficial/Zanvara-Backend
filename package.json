@@ -26,6 +26,7 @@
     "prisma:push": "prisma db push",
     "prisma:studio": "prisma studio",
     "db:seed": "node prisma/seed.js",
+    "promote-admin": "node prisma/promote-admin.js",
     "db:up": "docker compose up -d",
     "db:down": "docker compose down"
   },

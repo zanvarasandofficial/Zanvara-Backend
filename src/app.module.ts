@@ -9,6 +9,7 @@ import { HealthModule } from './health/health.module';
 import { InboundModule } from './inbound/inbound.module';
 import { PrismaModule } from './prisma/prisma.module';
 import { ProductsModule } from './products/products.module';
+import { CategoriesModule } from './categories/categories.module';
 import { SettingsModule } from './settings/settings.module';
 import { UsersModule } from './users/users.module';
 
@@ -24,6 +25,7 @@ import { UsersModule } from './users/users.module';
     AdminModule,
     SettingsModule,
     ProductsModule,
+    CategoriesModule,
     InboundModule,
     HealthModule,
   ],

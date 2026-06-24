@@ -69,4 +69,8 @@ export class CloudinaryService {
   uploadProductImage(file: Express.Multer.File): Promise<UploadApiResponse> {
     return this.uploadFile(file, this.productsFolder);
   }
+
+  uploadCategoryImage(file: Express.Multer.File): Promise<UploadApiResponse> {
+    return this.uploadFile(file, `${this.productsFolder}/categories`);
+  }
 }

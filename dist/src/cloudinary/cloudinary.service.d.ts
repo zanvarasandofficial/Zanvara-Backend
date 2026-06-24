@@ -8,4 +8,5 @@ export declare class CloudinaryService {
     private uploadFile;
     uploadHeroMedia(file: Express.Multer.File): Promise<UploadApiResponse>;
     uploadProductImage(file: Express.Multer.File): Promise<UploadApiResponse>;
+    uploadCategoryImage(file: Express.Multer.File): Promise<UploadApiResponse>;
 }

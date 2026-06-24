@@ -68,6 +68,15 @@ export class AuthService {
 
   async requestEmailOtp(dto: RequestOtpDto) {
     const email = dto.email.toLowerCase();
+
+    if (dto.forSignup) {
+      const existingUser = await this.usersService.findByEmail(email);
+
+      if (existingUser) {
+        throw new ConflictException('Email is already registered. Please login instead.');
+      }
+    }
+
     const latestOtp = await this.prisma.emailOtp.findFirst({
       where: { email },
       orderBy: { createdAt: 'desc' },
@@ -99,10 +108,7 @@ export class AuthService {
 
     return {
       ok: true,
-      message: this.mailService.isConfigured
-        ? 'Verification code sent to your email.'
-        : 'Verification code generated. Check server logs in development.',
-      devMode: !this.mailService.isConfigured,
+      message: 'Verification code sent to your email.',
     };
   }
 
@@ -125,10 +131,26 @@ export class AuthService {
     let user = await this.usersService.findByEmail(email);
 
     if (!user) {
+      const passwordHash = dto.password
+        ? await bcrypt.hash(dto.password, 12)
+        : undefined;
+
       user = await this.usersService.create({
         email,
         name: dto.name ?? null,
+        passwordHash,
         role: Role.USER,
+        authProvider: 'EMAIL',
+        emailVerified: true,
+      });
+    } else if (dto.password) {
+      if (user.passwordHash) {
+        throw new ConflictException('Email is already registered. Please login instead.');
+      }
+
+      user = await this.usersService.update(user.id, {
+        name: dto.name ?? user.name,
+        passwordHash: await bcrypt.hash(dto.password, 12),
         authProvider: 'EMAIL',
         emailVerified: true,
       });

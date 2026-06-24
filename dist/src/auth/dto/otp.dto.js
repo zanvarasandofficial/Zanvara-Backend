@@ -14,6 +14,7 @@ const class_validator_1 = require("class-validator");
 class RequestOtpDto {
     email;
     name;
+    forSignup;
 }
 exports.RequestOtpDto = RequestOtpDto;
 __decorate([
@@ -26,10 +27,16 @@ __decorate([
     (0, class_validator_1.MinLength)(2),
     __metadata("design:type", String)
 ], RequestOtpDto.prototype, "name", void 0);
+__decorate([
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsBoolean)(),
+    __metadata("design:type", Boolean)
+], RequestOtpDto.prototype, "forSignup", void 0);
 class VerifyOtpDto {
     email;
     code;
     name;
+    password;
 }
 exports.VerifyOtpDto = VerifyOtpDto;
 __decorate([
@@ -47,4 +54,10 @@ __decorate([
     (0, class_validator_1.MinLength)(2),
     __metadata("design:type", String)
 ], VerifyOtpDto.prototype, "name", void 0);
+__decorate([
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.MinLength)(8),
+    __metadata("design:type", String)
+], VerifyOtpDto.prototype, "password", void 0);
 //# sourceMappingURL=otp.dto.js.map

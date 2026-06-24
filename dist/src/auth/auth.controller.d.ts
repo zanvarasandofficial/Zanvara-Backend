@@ -33,7 +33,6 @@ export declare class AuthController {
     requestEmailOtp(dto: RequestOtpDto): Promise<{
         ok: boolean;
         message: string;
-        devMode: boolean;
     }>;
     verifyEmailOtp(dto: VerifyOtpDto): Promise<{
         accessToken: string;

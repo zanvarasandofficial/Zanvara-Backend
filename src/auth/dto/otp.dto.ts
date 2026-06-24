@@ -1,4 +1,4 @@
-import { IsEmail, IsOptional, IsString, Length, MinLength } from 'class-validator';
+import { IsBoolean, IsEmail, IsOptional, IsString, Length, MinLength } from 'class-validator';
 
 export class RequestOtpDto {
   @IsEmail()
@@ -8,6 +8,10 @@ export class RequestOtpDto {
   @IsString()
   @MinLength(2)
   name?: string;
+
+  @IsOptional()
+  @IsBoolean()
+  forSignup?: boolean;
 }
 
 export class VerifyOtpDto {
@@ -22,4 +26,9 @@ export class VerifyOtpDto {
   @IsString()
   @MinLength(2)
   name?: string;
+
+  @IsOptional()
+  @IsString()
+  @MinLength(8)
+  password?: string;
 }

@@ -40,7 +40,6 @@ export declare class AuthService {
     requestEmailOtp(dto: RequestOtpDto): Promise<{
         ok: boolean;
         message: string;
-        devMode: boolean;
     }>;
     verifyEmailOtp(dto: VerifyOtpDto): Promise<{
         accessToken: string;

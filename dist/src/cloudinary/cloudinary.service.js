@@ -62,6 +62,9 @@ let CloudinaryService = class CloudinaryService {
     uploadProductImage(file) {
         return this.uploadFile(file, this.productsFolder);
     }
+    uploadCategoryImage(file) {
+        return this.uploadFile(file, `${this.productsFolder}/categories`);
+    }
 };
 exports.CloudinaryService = CloudinaryService;
 exports.CloudinaryService = CloudinaryService = __decorate([
