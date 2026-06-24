@@ -15,7 +15,10 @@ let cachedServer;
 async function configureNestApp(app) {
     app.setGlobalPrefix('api');
     app.enableCors({
-        origin: process.env.FRONTEND_URL ?? 'http://localhost:3000',
+        origin: (process.env.FRONTEND_URL ?? 'http://localhost:3000')
+            .split(',')
+            .map((value) => value.trim())
+            .filter(Boolean),
         credentials: true,
     });
     app.useGlobalPipes(new common_1.ValidationPipe({

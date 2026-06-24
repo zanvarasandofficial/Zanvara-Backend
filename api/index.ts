@@ -1,10 +1,14 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { createApp } from '../src/bootstrap';
+import type { Express } from 'express';
 
-let server: Awaited<ReturnType<typeof createApp>> | undefined;
+let server: Express | undefined;
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (!server) {
+    const { createApp } = require('../dist/src/bootstrap') as {
+      createApp: () => Promise<Express>;
+    };
+
     server = await createApp();
   }
 
