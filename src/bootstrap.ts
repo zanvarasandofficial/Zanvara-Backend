@@ -9,11 +9,36 @@ let cachedServer: express.Express | undefined;
 export async function configureNestApp(app: INestApplication) {
   app.setGlobalPrefix('api');
 
+  const allowedOrigins = (process.env.FRONTEND_URL ?? 'http://localhost:3000')
+    .split(',')
+    .map((value) => value.trim())
+    .filter(Boolean);
+
   app.enableCors({
-    origin: (process.env.FRONTEND_URL ?? 'http://localhost:3000')
-      .split(',')
-      .map((value) => value.trim())
-      .filter(Boolean),
+    origin: (origin, callback) => {
+      if (!origin) {
+        callback(null, true);
+        return;
+      }
+
+      if (allowedOrigins.includes(origin)) {
+        callback(null, true);
+        return;
+      }
+
+      try {
+        const hostname = new URL(origin).hostname;
+        if (hostname.endsWith('.vercel.app')) {
+          callback(null, true);
+          return;
+        }
+      } catch {
+        callback(null, false);
+        return;
+      }
+
+      callback(null, false);
+    },
     credentials: true,
   });
 
