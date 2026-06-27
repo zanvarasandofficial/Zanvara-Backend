@@ -16,6 +16,7 @@ const auth_module_1 = require("./auth/auth.module");
 const cloudinary_module_1 = require("./cloudinary/cloudinary.module");
 const health_module_1 = require("./health/health.module");
 const inbound_module_1 = require("./inbound/inbound.module");
+const orders_module_1 = require("./orders/orders.module");
 const prisma_module_1 = require("./prisma/prisma.module");
 const products_module_1 = require("./products/products.module");
 const categories_module_1 = require("./categories/categories.module");
@@ -39,6 +40,7 @@ exports.AppModule = AppModule = __decorate([
             products_module_1.ProductsModule,
             categories_module_1.CategoriesModule,
             inbound_module_1.InboundModule,
+            orders_module_1.OrdersModule,
             health_module_1.HealthModule,
         ],
         controllers: [app_controller_1.AppController],
