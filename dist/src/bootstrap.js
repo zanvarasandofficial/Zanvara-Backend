@@ -12,31 +12,40 @@ const platform_express_1 = require("@nestjs/platform-express");
 const express_1 = __importDefault(require("express"));
 const app_module_1 = require("./app.module");
 let cachedServer;
+function parseOriginList(value) {
+    return (value ?? '')
+        .split(',')
+        .map((item) => item.trim())
+        .filter(Boolean);
+}
+function isAllowedCorsOrigin(origin) {
+    const allowedOrigins = [
+        ...parseOriginList(process.env.FRONTEND_URL ?? 'http://localhost:3000'),
+        ...parseOriginList(process.env.ALLOWED_ORIGINS),
+    ];
+    if (allowedOrigins.includes(origin)) {
+        return true;
+    }
+    try {
+        const hostname = new URL(origin).hostname.toLowerCase();
+        if (hostname.endsWith('.vercel.app')) {
+            return true;
+        }
+        if (hostname === 'zanvara.com' || hostname.endsWith('.zanvara.com')) {
+            return true;
+        }
+    }
+    catch {
+        return false;
+    }
+    return false;
+}
 async function configureNestApp(app) {
     app.setGlobalPrefix('api');
-    const allowedOrigins = (process.env.FRONTEND_URL ?? 'http://localhost:3000')
-        .split(',')
-        .map((value) => value.trim())
-        .filter(Boolean);
     app.enableCors({
         origin: (origin, callback) => {
-            if (!origin) {
+            if (!origin || isAllowedCorsOrigin(origin)) {
                 callback(null, true);
-                return;
-            }
-            if (allowedOrigins.includes(origin)) {
-                callback(null, true);
-                return;
-            }
-            try {
-                const hostname = new URL(origin).hostname;
-                if (hostname.endsWith('.vercel.app')) {
-                    callback(null, true);
-                    return;
-                }
-            }
-            catch {
-                callback(null, false);
                 return;
             }
             callback(null, false);

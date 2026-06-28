@@ -96,7 +96,11 @@ npx prisma db push
 
 ## Frontend Connection
 
-CORS is enabled for the URL in `FRONTEND_URL` (default `http://localhost:3000`).
+CORS is enabled for:
+- URLs in `FRONTEND_URL` (comma-separated, default `http://localhost:3000`)
+- Optional extra URLs in `ALLOWED_ORIGINS`
+- Any `*.vercel.app` frontend
+- `zanvara.com` and `*.zanvara.com` (e.g. `https://www.zanvara.com`)
 
 ## Scripts
 
