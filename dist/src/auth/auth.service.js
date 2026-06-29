@@ -51,6 +51,7 @@ const role_constant_1 = require("../common/constants/role.constant");
 const mail_service_1 = require("../mail/mail.service");
 const prisma_service_1 = require("../prisma/prisma.service");
 const users_service_1 = require("../users/users.service");
+const app_urls_1 = require("../config/app-urls");
 const OTP_EXPIRY_MINUTES = 10;
 const OTP_RESEND_SECONDS = 60;
 let AuthService = class AuthService {
@@ -198,7 +199,7 @@ let AuthService = class AuthService {
         return this.buildAuthResponse(user);
     }
     buildFrontendCallbackUrl(accessToken, redirectPath) {
-        const frontendUrl = this.configService.get('FRONTEND_URL', 'http://localhost:3000');
+        const frontendUrl = (0, app_urls_1.resolveFrontendUrl)(this.configService);
         const params = new URLSearchParams({
             token: accessToken,
             redirect: redirectPath,

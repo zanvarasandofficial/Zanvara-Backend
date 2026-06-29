@@ -14,13 +14,13 @@ const common_1 = require("@nestjs/common");
 const config_1 = require("@nestjs/config");
 const passport_1 = require("@nestjs/passport");
 const passport_google_oauth20_1 = require("passport-google-oauth20");
+const app_urls_1 = require("../../config/app-urls");
 let GoogleStrategy = class GoogleStrategy extends (0, passport_1.PassportStrategy)(passport_google_oauth20_1.Strategy, 'google') {
     isConfigured;
     constructor(configService) {
         const clientID = configService.get('GOOGLE_CLIENT_ID') ?? '';
         const clientSecret = configService.get('GOOGLE_CLIENT_SECRET') ?? '';
-        const callbackURL = configService.get('GOOGLE_CALLBACK_URL') ??
-            'http://localhost:4000/api/auth/google/callback';
+        const callbackURL = (0, app_urls_1.resolveGoogleCallbackUrl)(configService);
         super({
             clientID: clientID || 'google-not-configured',
             clientSecret: clientSecret || 'google-not-configured',

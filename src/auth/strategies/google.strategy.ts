@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { PassportStrategy } from '@nestjs/passport';
 import { Profile, Strategy, VerifyCallback } from 'passport-google-oauth20';
+import { resolveGoogleCallbackUrl } from '../../config/app-urls';
 
 export type GoogleProfilePayload = {
   email: string;
@@ -16,9 +17,7 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
   constructor(configService: ConfigService) {
     const clientID = configService.get<string>('GOOGLE_CLIENT_ID') ?? '';
     const clientSecret = configService.get<string>('GOOGLE_CLIENT_SECRET') ?? '';
-    const callbackURL =
-      configService.get<string>('GOOGLE_CALLBACK_URL') ??
-      'http://localhost:4000/api/auth/google/callback';
+    const callbackURL = resolveGoogleCallbackUrl(configService);
 
     super({
       clientID: clientID || 'google-not-configured',

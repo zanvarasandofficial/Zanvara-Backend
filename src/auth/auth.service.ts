@@ -16,6 +16,7 @@ import { RequestOtpDto, VerifyOtpDto } from './dto/otp.dto';
 import { UpdateProfileDto } from './dto/update-profile.dto';
 import { GoogleProfilePayload } from './strategies/google.strategy';
 import { AuthenticatedUser } from './types/authenticated-user.type';
+import { resolveFrontendUrl } from '../config/app-urls';
 
 const OTP_EXPIRY_MINUTES = 10;
 const OTP_RESEND_SECONDS = 60;
@@ -192,10 +193,7 @@ export class AuthService {
   }
 
   buildFrontendCallbackUrl(accessToken: string, redirectPath: string) {
-    const frontendUrl = this.configService.get<string>(
-      'FRONTEND_URL',
-      'http://localhost:3000',
-    );
+    const frontendUrl = resolveFrontendUrl(this.configService);
     const params = new URLSearchParams({
       token: accessToken,
       redirect: redirectPath,
