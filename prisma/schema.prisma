@@ -127,3 +127,27 @@ model AdminNotification {
   @@index([status])
   @@index([createdAt])
 }
+
+model Review {
+  id           String   @id @default(auto()) @map("_id") @db.ObjectId
+  productId    String   @db.ObjectId
+  productName  String
+  userId       String?  @db.ObjectId
+  userEmail    String?
+  orderId      String?  @db.ObjectId
+  source       String   @default("customer")
+  customerName String
+  customerCity String
+  rating       Int
+  title        String
+  comment      String
+  status       String   @default("Published")
+  verified     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([productId])
+  @@index([userId])
+  @@index([status])
+  @@index([createdAt])
+}
