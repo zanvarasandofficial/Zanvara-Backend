@@ -1,9 +1,14 @@
+import { MailService } from '../mail/mail.service';
+import { AdminNotificationsService } from '../notifications/admin-notifications.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { UpdateOrderStatusDto } from './dto/update-order-status.dto';
 export declare class OrdersService {
     private readonly prisma;
-    constructor(prisma: PrismaService);
+    private readonly mailService;
+    private readonly notificationsService;
+    private readonly logger;
+    constructor(prisma: PrismaService, mailService: MailService, notificationsService: AdminNotificationsService);
     create(userId: string, dto: CreateOrderDto): Promise<{
         id: string;
         userId: string;

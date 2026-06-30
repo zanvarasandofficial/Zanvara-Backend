@@ -8,15 +8,23 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
+var OrdersService_1;
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.OrdersService = void 0;
 const common_1 = require("@nestjs/common");
+const mail_service_1 = require("../mail/mail.service");
+const admin_notifications_service_1 = require("../notifications/admin-notifications.service");
 const prisma_service_1 = require("../prisma/prisma.service");
 const order_mapper_1 = require("./order.mapper");
-let OrdersService = class OrdersService {
+let OrdersService = OrdersService_1 = class OrdersService {
     prisma;
-    constructor(prisma) {
+    mailService;
+    notificationsService;
+    logger = new common_1.Logger(OrdersService_1.name);
+    constructor(prisma, mailService, notificationsService) {
         this.prisma = prisma;
+        this.mailService = mailService;
+        this.notificationsService = notificationsService;
     }
     async create(userId, dto) {
         if (!dto.items?.length) {
@@ -51,7 +59,14 @@ let OrdersService = class OrdersService {
                 items: dto.items,
             },
         });
-        return (0, order_mapper_1.mapOrder)(order);
+        const mappedOrder = (0, order_mapper_1.mapOrder)(order);
+        void this.mailService.sendNewOrderNotification(mappedOrder).catch((error) => {
+            this.logger.error(`Failed to send new order notification for ${mappedOrder.id}`, error);
+        });
+        void this.notificationsService.createOrderNotification(mappedOrder).catch((error) => {
+            this.logger.error(`Failed to create admin order notification for ${mappedOrder.id}`, error);
+        });
+        return mappedOrder;
     }
     async findMine(userId) {
         const orders = await this.prisma.order.findMany({
@@ -140,8 +155,10 @@ let OrdersService = class OrdersService {
     }
 };
 exports.OrdersService = OrdersService;
-exports.OrdersService = OrdersService = __decorate([
+exports.OrdersService = OrdersService = OrdersService_1 = __decorate([
     (0, common_1.Injectable)(),
-    __metadata("design:paramtypes", [prisma_service_1.PrismaService])
+    __metadata("design:paramtypes", [prisma_service_1.PrismaService,
+        mail_service_1.MailService,
+        admin_notifications_service_1.AdminNotificationsService])
 ], OrdersService);
 //# sourceMappingURL=orders.service.js.map

@@ -2,6 +2,7 @@ import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { Role } from '../common/constants/role.constant';
 import { MailService } from '../mail/mail.service';
+import { AdminNotificationsService } from '../notifications/admin-notifications.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { UsersService } from '../users/users.service';
 import { LoginDto, RegisterDto } from './dto/auth.dto';
@@ -14,7 +15,8 @@ export declare class AuthService {
     private readonly prisma;
     private readonly mailService;
     private readonly configService;
-    constructor(usersService: UsersService, jwtService: JwtService, prisma: PrismaService, mailService: MailService, configService: ConfigService);
+    private readonly notificationsService;
+    constructor(usersService: UsersService, jwtService: JwtService, prisma: PrismaService, mailService: MailService, configService: ConfigService, notificationsService: AdminNotificationsService);
     register(dto: RegisterDto): Promise<{
         accessToken: string;
         user: {
@@ -84,5 +86,6 @@ export declare class AuthService {
         createdAt: Date;
     }>;
     private generateOtpCode;
+    private notifyCustomerAuth;
     private buildAuthResponse;
 }

@@ -9,6 +9,7 @@ import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import { Role } from '../common/constants/role.constant';
 import { MailService } from '../mail/mail.service';
+import { AdminNotificationsService } from '../notifications/admin-notifications.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { UsersService } from '../users/users.service';
 import { LoginDto, RegisterDto } from './dto/auth.dto';
@@ -29,6 +30,7 @@ export class AuthService {
     private readonly prisma: PrismaService,
     private readonly mailService: MailService,
     private readonly configService: ConfigService,
+    private readonly notificationsService: AdminNotificationsService,
   ) {}
 
   async register(dto: RegisterDto) {
@@ -48,6 +50,8 @@ export class AuthService {
       emailVerified: true,
     });
 
+    this.notifyCustomerAuth(user, 'signup', 'EMAIL');
+
     return this.buildAuthResponse(user);
   }
 
@@ -63,6 +67,8 @@ export class AuthService {
     if (!isValidPassword) {
       throw new UnauthorizedException('Invalid email or password');
     }
+
+    this.notifyCustomerAuth(user, 'login', 'EMAIL');
 
     return this.buildAuthResponse(user);
   }
@@ -130,8 +136,10 @@ export class AuthService {
     await this.prisma.emailOtp.deleteMany({ where: { email } });
 
     let user = await this.usersService.findByEmail(email);
+    let isSignup = false;
 
     if (!user) {
+      isSignup = true;
       const passwordHash = dto.password
         ? await bcrypt.hash(dto.password, 12)
         : undefined;
@@ -161,6 +169,8 @@ export class AuthService {
       user = await this.usersService.update(user.id, { emailVerified: true });
     }
 
+    this.notifyCustomerAuth(user, isSignup ? 'signup' : 'login', 'OTP');
+
     return this.buildAuthResponse(user);
   }
 
@@ -168,6 +178,8 @@ export class AuthService {
     let user =
       (await this.usersService.findByGoogleId(profile.googleId)) ??
       (await this.usersService.findByEmail(profile.email));
+
+    let isSignup = false;
 
     if (user) {
       if (!user.googleId) {
@@ -179,6 +191,7 @@ export class AuthService {
         });
       }
     } else {
+      isSignup = true;
       user = await this.usersService.create({
         email: profile.email,
         name: profile.name,
@@ -188,6 +201,8 @@ export class AuthService {
         emailVerified: true,
       });
     }
+
+    this.notifyCustomerAuth(user, isSignup ? 'signup' : 'login', 'GOOGLE');
 
     return this.buildAuthResponse(user);
   }
@@ -244,6 +259,21 @@ export class AuthService {
 
   private generateOtpCode() {
     return Math.floor(100000 + Math.random() * 900000).toString();
+  }
+
+  private notifyCustomerAuth(
+    user: {
+      id: string;
+      email: string;
+      name: string | null;
+      role: string;
+    },
+    event: 'signup' | 'login',
+    provider: string,
+  ) {
+    void this.notificationsService
+      .createLoginNotification(user, event, provider)
+      .catch(() => undefined);
   }
 
   private buildAuthResponse(user: {

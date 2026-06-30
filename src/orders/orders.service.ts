@@ -1,9 +1,12 @@
 import {
   BadRequestException,
   Injectable,
+  Logger,
   NotFoundException,
 } from '@nestjs/common';
 import { Order, Prisma } from '@prisma/client';
+import { MailService } from '../mail/mail.service';
+import { AdminNotificationsService } from '../notifications/admin-notifications.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { UpdateOrderStatusDto } from './dto/update-order-status.dto';
@@ -17,7 +20,13 @@ type OrderItem = {
 
 @Injectable()
 export class OrdersService {
-  constructor(private readonly prisma: PrismaService) {}
+  private readonly logger = new Logger(OrdersService.name);
+
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly mailService: MailService,
+    private readonly notificationsService: AdminNotificationsService,
+  ) {}
 
   async create(userId: string, dto: CreateOrderDto) {
     if (!dto.items?.length) {
@@ -59,7 +68,23 @@ export class OrdersService {
       },
     });
 
-    return mapOrder(order);
+    const mappedOrder = mapOrder(order);
+
+    void this.mailService.sendNewOrderNotification(mappedOrder).catch((error) => {
+      this.logger.error(
+        `Failed to send new order notification for ${mappedOrder.id}`,
+        error,
+      );
+    });
+
+    void this.notificationsService.createOrderNotification(mappedOrder).catch((error) => {
+      this.logger.error(
+        `Failed to create admin order notification for ${mappedOrder.id}`,
+        error,
+      );
+    });
+
+    return mappedOrder;
   }
 
   async findMine(userId: string) {

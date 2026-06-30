@@ -49,6 +49,7 @@ const jwt_1 = require("@nestjs/jwt");
 const bcrypt = __importStar(require("bcrypt"));
 const role_constant_1 = require("../common/constants/role.constant");
 const mail_service_1 = require("../mail/mail.service");
+const admin_notifications_service_1 = require("../notifications/admin-notifications.service");
 const prisma_service_1 = require("../prisma/prisma.service");
 const users_service_1 = require("../users/users.service");
 const app_urls_1 = require("../config/app-urls");
@@ -60,12 +61,14 @@ let AuthService = class AuthService {
     prisma;
     mailService;
     configService;
-    constructor(usersService, jwtService, prisma, mailService, configService) {
+    notificationsService;
+    constructor(usersService, jwtService, prisma, mailService, configService, notificationsService) {
         this.usersService = usersService;
         this.jwtService = jwtService;
         this.prisma = prisma;
         this.mailService = mailService;
         this.configService = configService;
+        this.notificationsService = notificationsService;
     }
     async register(dto) {
         const existingUser = await this.usersService.findByEmail(dto.email);
@@ -81,6 +84,7 @@ let AuthService = class AuthService {
             authProvider: 'EMAIL',
             emailVerified: true,
         });
+        this.notifyCustomerAuth(user, 'signup', 'EMAIL');
         return this.buildAuthResponse(user);
     }
     async login(dto) {
@@ -92,6 +96,7 @@ let AuthService = class AuthService {
         if (!isValidPassword) {
             throw new common_1.UnauthorizedException('Invalid email or password');
         }
+        this.notifyCustomerAuth(user, 'login', 'EMAIL');
         return this.buildAuthResponse(user);
     }
     async requestEmailOtp(dto) {
@@ -141,7 +146,9 @@ let AuthService = class AuthService {
         }
         await this.prisma.emailOtp.deleteMany({ where: { email } });
         let user = await this.usersService.findByEmail(email);
+        let isSignup = false;
         if (!user) {
+            isSignup = true;
             const passwordHash = dto.password
                 ? await bcrypt.hash(dto.password, 12)
                 : undefined;
@@ -171,11 +178,13 @@ let AuthService = class AuthService {
         else if (!user.emailVerified) {
             user = await this.usersService.update(user.id, { emailVerified: true });
         }
+        this.notifyCustomerAuth(user, isSignup ? 'signup' : 'login', 'OTP');
         return this.buildAuthResponse(user);
     }
     async loginWithGoogle(profile) {
         let user = (await this.usersService.findByGoogleId(profile.googleId)) ??
             (await this.usersService.findByEmail(profile.email));
+        let isSignup = false;
         if (user) {
             if (!user.googleId) {
                 user = await this.usersService.update(user.id, {
@@ -187,6 +196,7 @@ let AuthService = class AuthService {
             }
         }
         else {
+            isSignup = true;
             user = await this.usersService.create({
                 email: profile.email,
                 name: profile.name,
@@ -196,6 +206,7 @@ let AuthService = class AuthService {
                 emailVerified: true,
             });
         }
+        this.notifyCustomerAuth(user, isSignup ? 'signup' : 'login', 'GOOGLE');
         return this.buildAuthResponse(user);
     }
     buildFrontendCallbackUrl(accessToken, redirectPath) {
@@ -240,6 +251,11 @@ let AuthService = class AuthService {
     generateOtpCode() {
         return Math.floor(100000 + Math.random() * 900000).toString();
     }
+    notifyCustomerAuth(user, event, provider) {
+        void this.notificationsService
+            .createLoginNotification(user, event, provider)
+            .catch(() => undefined);
+    }
     buildAuthResponse(user) {
         const role = user.role;
         return {
@@ -266,6 +282,7 @@ exports.AuthService = AuthService = __decorate([
         jwt_1.JwtService,
         prisma_service_1.PrismaService,
         mail_service_1.MailService,
-        config_1.ConfigService])
+        config_1.ConfigService,
+        admin_notifications_service_1.AdminNotificationsService])
 ], AuthService);
 //# sourceMappingURL=auth.service.js.map
