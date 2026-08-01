@@ -23,6 +23,10 @@ export declare function mapOrder(order: Order): {
         notes: string;
     };
     status: string;
+    fulfillmentKind: string;
+    displayCurrency: string;
+    exchangeRate: number | null;
+    customerCountry: string | null;
     createdAt: string;
     updatedAt: string;
 };
@@ -40,6 +44,7 @@ export declare function mapOrderForAdmin(order: Order): {
     items: OrderItem[];
     itemCount: number;
     status: string;
+    fulfillmentKind: string;
     payment: string;
     date: string;
     createdAt: string;

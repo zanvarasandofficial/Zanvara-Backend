@@ -1,6 +1,8 @@
+import { Type } from 'class-transformer';
 import {
   IsArray,
   IsBoolean,
+  IsDateString,
   IsIn,
   IsInt,
   IsNumber,
@@ -25,6 +27,18 @@ export class CreateProductDto {
   @IsString()
   detailsHtml?: string | null;
 
+  @IsOptional()
+  @IsString()
+  specsHtml?: string | null;
+
+  @IsOptional()
+  @IsString()
+  whatsIncludedHtml?: string | null;
+
+  @IsOptional()
+  @IsString()
+  shippingReturnsHtml?: string | null;
+
   @IsString()
   @MinLength(2)
   category!: string;
@@ -37,6 +51,17 @@ export class CreateProductDto {
   @IsNumber()
   @Min(0.01)
   priceAfterDiscount?: number | null;
+
+  @IsOptional()
+  @IsNumber()
+  @Min(0.01)
+  originalPriceUsd?: number | null;
+
+  @ValidateIf((_, value) => value !== null && value !== undefined)
+  @IsOptional()
+  @IsNumber()
+  @Min(0.01)
+  priceAfterDiscountUsd?: number | null;
 
   @IsOptional()
   @IsString()
@@ -84,4 +109,30 @@ export class CreateProductDto {
   @IsNumber()
   @Min(0.01)
   deliveryCharge?: number | null;
+
+  @IsOptional()
+  @IsBoolean()
+  isComingSoon?: boolean;
+
+  @ValidateIf((dto) => dto.isComingSoon === true)
+  @IsDateString()
+  availableAt?: string;
+
+  @IsOptional()
+  @IsBoolean()
+  isPreOrder?: boolean;
+
+  @ValidateIf((dto) => dto.isPreOrder === true)
+  @IsInt()
+  @Min(1)
+  preOrderCapacity?: number;
+
+  @ValidateIf((dto) => dto.isPreOrder === true)
+  @IsOptional()
+  @IsDateString()
+  expectedShipAt?: string;
+
+  @IsOptional()
+  @IsString()
+  expectedShipNote?: string | null;
 }

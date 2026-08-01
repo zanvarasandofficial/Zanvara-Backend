@@ -1,4 +1,5 @@
-import { Body, Controller, Get, Param, Post, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, Req, UseGuards } from '@nestjs/common';
+import type { Request } from 'express';
 import { AuthGuard } from '@nestjs/passport';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 import type { AuthenticatedUser } from '../auth/types/authenticated-user.type';
@@ -14,8 +15,9 @@ export class OrdersController {
   create(
     @CurrentUser() user: AuthenticatedUser,
     @Body() dto: CreateOrderDto,
+    @Req() req: Request,
   ) {
-    return this.ordersService.create(user.id, dto);
+    return this.ordersService.create(user.id, dto, req);
   }
 
   @Get('me')

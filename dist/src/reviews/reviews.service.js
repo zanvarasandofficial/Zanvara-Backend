@@ -15,6 +15,9 @@ const prisma_service_1 = require("../prisma/prisma.service");
 const review_mapper_1 = require("./review.mapper");
 const ORDER_STATUS_LABELS = {
     pending: 'Order Received',
+    pre_order_confirmed: 'Pre-order Confirmed',
+    in_production: 'In Production',
+    ready_to_ship: 'Ready to Ship',
     confirmed: 'Processing at Warehouse',
     shipped: 'Dispatched from Warehouse',
     delivered: 'Delivered',

@@ -2,9 +2,14 @@ export declare class UpdateProductDto {
     name?: string;
     description?: string;
     detailsHtml?: string | null;
+    specsHtml?: string | null;
+    whatsIncludedHtml?: string | null;
+    shippingReturnsHtml?: string | null;
     category?: string;
     originalPrice?: number;
     priceAfterDiscount?: number | null;
+    originalPriceUsd?: number | null;
+    priceAfterDiscountUsd?: number | null;
     badge?: string | null;
     imageUrl?: string;
     hoverImageUrl?: string | null;
@@ -17,4 +22,10 @@ export declare class UpdateProductDto {
     isPopular?: boolean;
     deliveryType?: 'FREE' | 'CHARGED';
     deliveryCharge?: number | null;
+    isComingSoon?: boolean;
+    availableAt?: string;
+    isPreOrder?: boolean;
+    preOrderCapacity?: number;
+    expectedShipAt?: string;
+    expectedShipNote?: string | null;
 }

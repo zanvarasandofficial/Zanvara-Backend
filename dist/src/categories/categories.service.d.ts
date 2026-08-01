@@ -1,12 +1,17 @@
+import { OnModuleInit } from '@nestjs/common';
 import { CloudinaryService } from '../cloudinary/cloudinary.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateCategoryDto } from './dto/create-category.dto';
 import { UpdateCategoryDto } from './dto/update-category.dto';
-export declare class CategoriesService {
+export declare class CategoriesService implements OnModuleInit {
     private readonly prisma;
     private readonly cloudinaryService;
+    private syncInFlight;
     constructor(prisma: PrismaService, cloudinaryService: CloudinaryService);
+    onModuleInit(): Promise<void>;
     private ensureDefaultCategories;
+    private syncStoreCategories;
+    private runStoreCategorySync;
     private getProductCountsByName;
     private mapPublicCategory;
     private mapAdminCategory;

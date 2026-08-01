@@ -22,29 +22,19 @@ const ALLOWED_IMAGE_TYPES = new Set([
 ]);
 const DEFAULT_CATEGORIES = [
     {
-        name: 'Electronics',
+        name: 'KINETIC SAND TABLES',
         sortOrder: 0,
-        imageUrl: 'https://images.unsplash.com/photo-1498049794561-7780e7231661?auto=format&fit=crop&w=800&q=80',
-    },
-    {
-        name: 'Fashion',
-        sortOrder: 1,
-        imageUrl: 'https://images.unsplash.com/photo-1445205170230-053b83016050?auto=format&fit=crop&w=800&q=80',
-    },
-    {
-        name: 'Home & Living',
-        sortOrder: 2,
         imageUrl: 'https://images.unsplash.com/photo-1586023492125-27b2c045efd7?auto=format&fit=crop&w=800&q=80',
     },
     {
-        name: 'Beauty',
-        sortOrder: 3,
-        imageUrl: 'https://images.unsplash.com/photo-1596462502278-27bfdc403348?auto=format&fit=crop&w=800&q=80',
+        name: 'ARTISAN SAND',
+        sortOrder: 1,
+        imageUrl: 'https://images.unsplash.com/photo-1509316785289-025f5b846503?auto=format&fit=crop&w=800&q=80',
     },
     {
-        name: 'Sports',
-        sortOrder: 4,
-        imageUrl: 'https://images.unsplash.com/photo-1517649763962-0c62306601b7?auto=format&fit=crop&w=800&q=80',
+        name: 'MAGNETIC SPHERES',
+        sortOrder: 2,
+        imageUrl: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=800&q=80',
     },
 ];
 function slugifyName(value) {
@@ -63,24 +53,68 @@ function formatItemCount(count) {
 let CategoriesService = class CategoriesService {
     prisma;
     cloudinaryService;
+    syncInFlight = null;
     constructor(prisma, cloudinaryService) {
         this.prisma = prisma;
         this.cloudinaryService = cloudinaryService;
     }
-    async ensureDefaultCategories() {
-        const count = await this.prisma.storeCategory.count();
-        if (count > 0) {
-            return;
+    async onModuleInit() {
+        try {
+            await this.syncStoreCategories();
         }
-        await this.prisma.storeCategory.createMany({
-            data: DEFAULT_CATEGORIES.map((category) => ({
-                name: category.name,
-                slug: slugifyName(category.name),
-                imageUrl: category.imageUrl,
-                sortOrder: category.sortOrder,
-                isActive: true,
-            })),
-        });
+        catch {
+        }
+    }
+    async ensureDefaultCategories() {
+        await this.syncStoreCategories();
+    }
+    async syncStoreCategories() {
+        if (!this.syncInFlight) {
+            this.syncInFlight = this.runStoreCategorySync().finally(() => {
+                this.syncInFlight = null;
+            });
+        }
+        await this.syncInFlight;
+    }
+    async runStoreCategorySync() {
+        const canonicalNames = DEFAULT_CATEGORIES.map((category) => category.name);
+        for (let attempt = 0; attempt < 3; attempt += 1) {
+            try {
+                for (const category of DEFAULT_CATEGORIES) {
+                    const slug = slugifyName(category.name);
+                    if (!slug) {
+                        continue;
+                    }
+                    await this.prisma.storeCategory.upsert({
+                        where: { slug },
+                        create: {
+                            name: category.name,
+                            slug,
+                            imageUrl: category.imageUrl,
+                            sortOrder: category.sortOrder,
+                            isActive: true,
+                        },
+                        update: {
+                            name: category.name,
+                            sortOrder: category.sortOrder,
+                            isActive: true,
+                        },
+                    });
+                }
+                await this.prisma.storeCategory.deleteMany({
+                    where: {
+                        name: { notIn: canonicalNames },
+                    },
+                });
+                return;
+            }
+            catch (error) {
+                if (attempt === 2) {
+                    throw error;
+                }
+                await new Promise((resolve) => setTimeout(resolve, 400 * (attempt + 1)));
+            }
+        }
     }
     async getProductCountsByName() {
         const products = await this.prisma.product.findMany({

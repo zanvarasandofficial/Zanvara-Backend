@@ -1,6 +1,8 @@
+import { Transform } from 'class-transformer';
 import {
   IsArray,
   IsBoolean,
+  IsDateString,
   IsIn,
   IsInt,
   IsNumber,
@@ -28,6 +30,18 @@ export class UpdateProductDto {
 
   @IsOptional()
   @IsString()
+  specsHtml?: string | null;
+
+  @IsOptional()
+  @IsString()
+  whatsIncludedHtml?: string | null;
+
+  @IsOptional()
+  @IsString()
+  shippingReturnsHtml?: string | null;
+
+  @IsOptional()
+  @IsString()
   @MinLength(2)
   category?: string;
 
@@ -42,6 +56,18 @@ export class UpdateProductDto {
   priceAfterDiscount?: number | null;
 
   @IsOptional()
+  @ValidateIf((_, value) => value !== null && value !== undefined)
+  @IsNumber()
+  @Min(0.01)
+  originalPriceUsd?: number | null;
+
+  @IsOptional()
+  @ValidateIf((_, value) => value !== null && value !== undefined)
+  @IsNumber()
+  @Min(0.01)
+  priceAfterDiscountUsd?: number | null;
+
+  @IsOptional()
   @IsString()
   badge?: string | null;
 
@@ -50,6 +76,8 @@ export class UpdateProductDto {
   imageUrl?: string;
 
   @IsOptional()
+  @Transform(({ value }) => (value === '' ? undefined : value))
+  @ValidateIf((_, value) => value !== null && value !== undefined)
   @IsUrl()
   hoverImageUrl?: string | null;
 
@@ -92,4 +120,30 @@ export class UpdateProductDto {
   @IsNumber()
   @Min(0.01)
   deliveryCharge?: number | null;
+
+  @IsOptional()
+  @IsBoolean()
+  isComingSoon?: boolean;
+
+  @ValidateIf((dto) => dto.isComingSoon === true)
+  @IsDateString()
+  availableAt?: string;
+
+  @IsOptional()
+  @IsBoolean()
+  isPreOrder?: boolean;
+
+  @ValidateIf((dto) => dto.isPreOrder === true)
+  @IsInt()
+  @Min(1)
+  preOrderCapacity?: number;
+
+  @ValidateIf((dto) => dto.isPreOrder === true)
+  @IsOptional()
+  @IsDateString()
+  expectedShipAt?: string;
+
+  @IsOptional()
+  @IsString()
+  expectedShipNote?: string | null;
 }

@@ -40,6 +40,14 @@ model HeroSetting {
   updatedAt          DateTime @updatedAt
 }
 
+model StoreSetting {
+  id                           String   @id @map("_id")
+  freeDeliveryMinTableQuantity Int      @default(2)
+  pkrToUsdRate                 Float    @default(278)
+  createdAt                    DateTime @default(now())
+  updatedAt                    DateTime @updatedAt
+}
+
 model StoreCategory {
   id                 String   @id @default(auto()) @map("_id") @db.ObjectId
   name               String   @unique
@@ -58,9 +66,14 @@ model Product {
   slug               String   @unique
   description        String?
   detailsHtml        String?
+  specsHtml          String?
+  whatsIncludedHtml  String?
+  shippingReturnsHtml String?
   category           String
   originalPrice      Float
   priceAfterDiscount Float?
+  originalPriceUsd      Float?
+  priceAfterDiscountUsd Float?
   badge              String?
   imageUrl           String
   hoverImageUrl      String?
@@ -73,6 +86,13 @@ model Product {
   isPopular          Boolean  @default(false)
   deliveryType       String   @default("FREE")
   deliveryCharge     Float?
+  isComingSoon       Boolean  @default(false)
+  availableAt        DateTime?
+  isPreOrder         Boolean  @default(false)
+  preOrderCapacity   Int?
+  preOrderReserved   Int      @default(0)
+  expectedShipAt     DateTime?
+  expectedShipNote   String?
   createdAt          DateTime @default(now())
   updatedAt          DateTime @updatedAt
 }
@@ -95,6 +115,11 @@ model Order {
   orderNumber     String   @unique
   userId          String   @db.ObjectId
   status          String   @default("pending")
+  fulfillmentKind String   @default("standard")
+  preOrderAdjusted Boolean @default(false)
+  displayCurrency String  @default("PKR")
+  exchangeRate    Float?
+  customerCountry String?
   paymentMethod   String   @default("Cash on Delivery")
   subtotal        Float
   deliveryTotal   Float

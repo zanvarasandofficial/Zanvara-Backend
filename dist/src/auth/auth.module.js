@@ -17,6 +17,7 @@ const users_module_1 = require("../users/users.module");
 const auth_controller_1 = require("./auth.controller");
 const auth_service_1 = require("./auth.service");
 const google_auth_guard_1 = require("./guards/google-auth.guard");
+const google_callback_guard_1 = require("./guards/google-callback.guard");
 const google_strategy_1 = require("./strategies/google.strategy");
 const jwt_strategy_1 = require("./strategies/jwt.strategy");
 let AuthModule = class AuthModule {
@@ -41,7 +42,7 @@ exports.AuthModule = AuthModule = __decorate([
             }),
         ],
         controllers: [auth_controller_1.AuthController],
-        providers: [auth_service_1.AuthService, jwt_strategy_1.JwtStrategy, google_strategy_1.GoogleStrategy, google_auth_guard_1.GoogleAuthGuard],
+        providers: [auth_service_1.AuthService, jwt_strategy_1.JwtStrategy, google_strategy_1.GoogleStrategy, google_auth_guard_1.GoogleAuthGuard, google_callback_guard_1.GoogleCallbackGuard],
         exports: [auth_service_1.AuthService, jwt_1.JwtModule],
     })
 ], AuthModule);

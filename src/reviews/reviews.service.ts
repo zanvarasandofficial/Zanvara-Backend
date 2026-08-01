@@ -27,6 +27,9 @@ type ReviewEligibility = {
 
 const ORDER_STATUS_LABELS: Record<string, string> = {
   pending: 'Order Received',
+  pre_order_confirmed: 'Pre-order Confirmed',
+  in_production: 'In Production',
+  ready_to_ship: 'Ready to Ship',
   confirmed: 'Processing at Warehouse',
   shipped: 'Dispatched from Warehouse',
   delivered: 'Delivered',

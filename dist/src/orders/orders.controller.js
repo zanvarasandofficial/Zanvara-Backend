@@ -23,8 +23,8 @@ let OrdersController = class OrdersController {
     constructor(ordersService) {
         this.ordersService = ordersService;
     }
-    create(user, dto) {
-        return this.ordersService.create(user.id, dto);
+    create(user, dto, req) {
+        return this.ordersService.create(user.id, dto, req);
     }
     findMine(user) {
         return this.ordersService.findMine(user.id);
@@ -38,8 +38,9 @@ __decorate([
     (0, common_1.Post)(),
     __param(0, (0, current_user_decorator_1.CurrentUser)()),
     __param(1, (0, common_1.Body)()),
+    __param(2, (0, common_1.Req)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object, create_order_dto_1.CreateOrderDto]),
+    __metadata("design:paramtypes", [Object, create_order_dto_1.CreateOrderDto, Object]),
     __metadata("design:returntype", void 0)
 ], OrdersController.prototype, "create", null);
 __decorate([

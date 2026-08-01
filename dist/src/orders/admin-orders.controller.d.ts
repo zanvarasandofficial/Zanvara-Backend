@@ -23,6 +23,7 @@ export declare class AdminOrdersController {
         }[];
         itemCount: number;
         status: string;
+        fulfillmentKind: string;
         payment: string;
         date: string;
         createdAt: string;
@@ -49,6 +50,7 @@ export declare class AdminOrdersController {
         }[];
         itemCount: number;
         status: string;
+        fulfillmentKind: string;
         payment: string;
         date: string;
         createdAt: string;
@@ -75,6 +77,7 @@ export declare class AdminOrdersController {
         }[];
         itemCount: number;
         status: string;
+        fulfillmentKind: string;
         payment: string;
         date: string;
         createdAt: string;

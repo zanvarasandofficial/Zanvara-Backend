@@ -24,6 +24,10 @@ function mapOrder(order) {
             notes: order.customerNotes ?? '',
         },
         status: order.status,
+        fulfillmentKind: order.fulfillmentKind ?? 'standard',
+        displayCurrency: order.displayCurrency ?? 'PKR',
+        exchangeRate: order.exchangeRate ?? null,
+        customerCountry: order.customerCountry ?? null,
         createdAt: order.createdAt.toISOString(),
         updatedAt: order.updatedAt.toISOString(),
     };
@@ -45,6 +49,7 @@ function mapOrderForAdmin(order) {
         items: mapped.items,
         itemCount: mapped.items.length,
         status: mapped.status,
+        fulfillmentKind: mapped.fulfillmentKind,
         payment: mapped.paymentMethod,
         date: createdAt.toLocaleDateString('en-PK', {
             year: 'numeric',

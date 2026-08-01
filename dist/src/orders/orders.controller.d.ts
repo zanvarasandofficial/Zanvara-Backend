@@ -1,10 +1,11 @@
+import type { Request } from 'express';
 import type { AuthenticatedUser } from '../auth/types/authenticated-user.type';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { OrdersService } from './orders.service';
 export declare class OrdersController {
     private readonly ordersService;
     constructor(ordersService: OrdersService);
-    create(user: AuthenticatedUser, dto: CreateOrderDto): Promise<{
+    create(user: AuthenticatedUser, dto: CreateOrderDto, req: Request): Promise<{
         id: string;
         userId: string;
         items: {
@@ -27,6 +28,10 @@ export declare class OrdersController {
             notes: string;
         };
         status: string;
+        fulfillmentKind: string;
+        displayCurrency: string;
+        exchangeRate: number | null;
+        customerCountry: string | null;
         createdAt: string;
         updatedAt: string;
     }>;
@@ -53,6 +58,10 @@ export declare class OrdersController {
             notes: string;
         };
         status: string;
+        fulfillmentKind: string;
+        displayCurrency: string;
+        exchangeRate: number | null;
+        customerCountry: string | null;
         createdAt: string;
         updatedAt: string;
     }[]>;
@@ -79,6 +88,10 @@ export declare class OrdersController {
             notes: string;
         };
         status: string;
+        fulfillmentKind: string;
+        displayCurrency: string;
+        exchangeRate: number | null;
+        customerCountry: string | null;
         createdAt: string;
         updatedAt: string;
     }>;

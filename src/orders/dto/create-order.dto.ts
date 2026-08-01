@@ -79,6 +79,19 @@ export class CreateOrderDto {
   @IsString()
   paymentMethod?: string;
 
+  @IsOptional()
+  @IsString()
+  displayCurrency?: string;
+
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
+  exchangeRate?: number;
+
+  @IsOptional()
+  @IsString()
+  customerCountry?: string;
+
   @ValidateNested()
   @Type(() => CreateOrderCustomerDto)
   customer!: CreateOrderCustomerDto;

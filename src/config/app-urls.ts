@@ -21,12 +21,29 @@ function buildGoogleCallbackUrl(base: string): string {
   return `${toAbsoluteBase(base)}/api/auth/google/callback`;
 }
 
+function normalizeLocalOAuthBase(url: string): string {
+  return url
+    .trim()
+    .replace(/\/$/, '')
+    .replace(/\/api$/, '')
+    .replace(/^http:\/\/localhost(?=[:/])/i, 'http://127.0.0.1');
+}
+
+function normalizeLocalCallbackUrl(url: string): string {
+  return url.trim().replace(/^http:\/\/localhost(?=[:/])/i, 'http://127.0.0.1');
+}
+
 function isPreviewVercelHost(hostname: string): boolean {
   // e.g. zanvara-backend-q61waoe97-zanvara-s-projects.vercel.app
   return /-[a-z0-9]+-[^.]+\.vercel\.app$/i.test(hostname);
 }
 
 export function resolveGoogleCallbackUrl(configService: ConfigService): string {
+  const publicBase = configService.get<string>('BACKEND_PUBLIC_URL')?.trim();
+  if (publicBase) {
+    return buildGoogleCallbackUrl(normalizeLocalOAuthBase(publicBase));
+  }
+
   const explicit = configService.get<string>('GOOGLE_CALLBACK_URL')?.trim();
 
   if (explicit && !explicit.includes('localhost')) {
@@ -47,11 +64,11 @@ export function resolveGoogleCallbackUrl(configService: ConfigService): string {
   }
 
   if (explicit) {
-    return explicit;
+    return normalizeLocalCallbackUrl(explicit);
   }
 
   const port = configService.get<string>('PORT') ?? '4000';
-  return `http://localhost:${port}/api/auth/google/callback`;
+  return `http://127.0.0.1:${port}/api/auth/google/callback`;
 }
 
 export function resolveFrontendUrl(configService: ConfigService): string {

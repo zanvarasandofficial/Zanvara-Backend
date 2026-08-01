@@ -1,4 +1,5 @@
 import type { Product } from '@prisma/client';
+import { getPreOrderSlotsRemaining } from './product-fulfillment.util';
 
 export type PublicProduct = {
   id: string;
@@ -6,6 +7,9 @@ export type PublicProduct = {
   name: string;
   description: string | null;
   detailsHtml: string | null;
+  specsHtml: string | null;
+  whatsIncludedHtml: string | null;
+  shippingReturnsHtml: string | null;
   category: string;
   price: number;
   originalPrice: number | null;
@@ -17,6 +21,16 @@ export type PublicProduct = {
   stock: number;
   deliveryType: string;
   deliveryCharge: number | null;
+  isComingSoon: boolean;
+  availableAt: string | null;
+  isPreOrder: boolean;
+  preOrderCapacity: number | null;
+  preOrderSlotsRemaining: number | null;
+  expectedShipAt: string | null;
+  expectedShipNote: string | null;
+  /** Set when admin entered USD prices; null → storefront uses FX from PKR */
+  priceUsd: number | null;
+  originalPriceUsd: number | null;
 };
 
 export function hasProductDiscount(product: Pick<Product, 'originalPrice' | 'priceAfterDiscount'>) {
@@ -45,9 +59,40 @@ export function getDiscountPercent(
   );
 }
 
+function resolvePublicUsdPricing(
+  product: Pick<Product, 'originalPriceUsd' | 'priceAfterDiscountUsd'>,
+) {
+  const originalUsd = product.originalPriceUsd;
+  const afterUsd = product.priceAfterDiscountUsd;
+
+  if (originalUsd == null && afterUsd == null) {
+    return { priceUsd: null, originalPriceUsd: null };
+  }
+
+  if (
+    originalUsd != null &&
+    afterUsd != null &&
+    afterUsd > 0 &&
+    afterUsd < originalUsd
+  ) {
+    return { priceUsd: afterUsd, originalPriceUsd: originalUsd };
+  }
+
+  if (originalUsd != null && originalUsd > 0) {
+    return { priceUsd: originalUsd, originalPriceUsd: null };
+  }
+
+  if (afterUsd != null && afterUsd > 0) {
+    return { priceUsd: afterUsd, originalPriceUsd: null };
+  }
+
+  return { priceUsd: null, originalPriceUsd: null };
+}
+
 export function mapProductToPublic(product: Product): PublicProduct {
   const discountPercent = getDiscountPercent(product);
   const hasDiscount = discountPercent != null;
+  const usdPricing = resolvePublicUsdPricing(product);
 
   return {
     id: product.id,
@@ -55,6 +100,9 @@ export function mapProductToPublic(product: Product): PublicProduct {
     name: product.name,
     description: product.description,
     detailsHtml: normalizeDetailsHtml(product.detailsHtml),
+    specsHtml: normalizeDetailsHtml(product.specsHtml),
+    whatsIncludedHtml: normalizeDetailsHtml(product.whatsIncludedHtml),
+    shippingReturnsHtml: normalizeDetailsHtml(product.shippingReturnsHtml),
     category: product.category,
     price: getSellingPrice(product),
     originalPrice: hasDiscount ? product.originalPrice : null,
@@ -67,6 +115,17 @@ export function mapProductToPublic(product: Product): PublicProduct {
     deliveryType: product.deliveryType ?? 'FREE',
     deliveryCharge:
       product.deliveryType === 'CHARGED' ? product.deliveryCharge : null,
+    isComingSoon: Boolean(product.isComingSoon),
+    availableAt: product.availableAt?.toISOString() ?? null,
+    isPreOrder: Boolean(product.isPreOrder),
+    preOrderCapacity: product.isPreOrder ? product.preOrderCapacity ?? null : null,
+    preOrderSlotsRemaining: product.isPreOrder
+      ? getPreOrderSlotsRemaining(product)
+      : null,
+    expectedShipAt: product.expectedShipAt?.toISOString() ?? null,
+    expectedShipNote: product.expectedShipNote?.trim() || null,
+    priceUsd: usdPricing.priceUsd,
+    originalPriceUsd: usdPricing.originalPriceUsd,
   };
 }
 

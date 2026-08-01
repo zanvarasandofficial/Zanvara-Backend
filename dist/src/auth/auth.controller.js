@@ -21,6 +21,7 @@ const auth_dto_1 = require("./dto/auth.dto");
 const otp_dto_1 = require("./dto/otp.dto");
 const update_profile_dto_1 = require("./dto/update-profile.dto");
 const google_auth_guard_1 = require("./guards/google-auth.guard");
+const google_callback_guard_1 = require("./guards/google-callback.guard");
 let AuthController = class AuthController {
     authService;
     constructor(authService) {
@@ -92,7 +93,7 @@ __decorate([
 ], AuthController.prototype, "googleAuth", null);
 __decorate([
     (0, common_1.Get)('google/callback'),
-    (0, common_1.UseGuards)((0, passport_1.AuthGuard)('google')),
+    (0, common_1.UseGuards)(google_callback_guard_1.GoogleCallbackGuard),
     __param(0, (0, common_1.Req)()),
     __param(1, (0, common_1.Res)()),
     __metadata("design:type", Function),

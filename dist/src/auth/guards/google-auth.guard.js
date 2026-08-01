@@ -11,13 +11,17 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.GoogleAuthGuard = void 0;
 const common_1 = require("@nestjs/common");
+const config_1 = require("@nestjs/config");
 const passport_1 = require("@nestjs/passport");
+const google_callback_url_util_1 = require("../google-callback-url.util");
 const google_strategy_1 = require("../strategies/google.strategy");
 let GoogleAuthGuard = class GoogleAuthGuard extends (0, passport_1.AuthGuard)('google') {
     googleStrategy;
-    constructor(googleStrategy) {
+    configService;
+    constructor(googleStrategy, configService) {
         super();
         this.googleStrategy = googleStrategy;
+        this.configService = configService;
     }
     canActivate(context) {
         if (!this.googleStrategy.configured) {
@@ -27,16 +31,20 @@ let GoogleAuthGuard = class GoogleAuthGuard extends (0, passport_1.AuthGuard)('g
     }
     getAuthenticateOptions(context) {
         const request = context.switchToHttp().getRequest();
-        const redirect = request.query?.redirect ?? '/checkout';
+        const redirect = typeof request.query?.redirect === 'string'
+            ? request.query.redirect
+            : '/checkout';
         return {
             scope: ['email', 'profile'],
             state: Buffer.from(redirect, 'utf8').toString('base64url'),
+            callbackURL: (0, google_callback_url_util_1.resolveGoogleCallbackFromRequest)(request, this.configService),
         };
     }
 };
 exports.GoogleAuthGuard = GoogleAuthGuard;
 exports.GoogleAuthGuard = GoogleAuthGuard = __decorate([
     (0, common_1.Injectable)(),
-    __metadata("design:paramtypes", [google_strategy_1.GoogleStrategy])
+    __metadata("design:paramtypes", [google_strategy_1.GoogleStrategy,
+        config_1.ConfigService])
 ], GoogleAuthGuard);
 //# sourceMappingURL=google-auth.guard.js.map

@@ -19,5 +19,8 @@ export declare class CreateOrderDto {
     deliveryTotal: number;
     total: number;
     paymentMethod?: string;
+    displayCurrency?: string;
+    exchangeRate?: number;
+    customerCountry?: string;
     customer: CreateOrderCustomerDto;
 }

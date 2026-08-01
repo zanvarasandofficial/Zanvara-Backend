@@ -42,6 +42,34 @@ let ProductsService = class ProductsService {
             throw new common_1.BadRequestException('Price after discount must be lower than original price');
         }
     }
+    validateUsdPricing(originalPriceUsd, priceAfterDiscountUsd) {
+        const hasOrig = originalPriceUsd != null;
+        const hasAfter = priceAfterDiscountUsd != null;
+        if (!hasOrig && !hasAfter) {
+            return;
+        }
+        if (hasAfter && !hasOrig) {
+            throw new common_1.BadRequestException('Original price (USD) is required when setting a USD sale price.');
+        }
+        if (hasOrig && originalPriceUsd <= 0) {
+            throw new common_1.BadRequestException('Original price (USD) must be greater than zero');
+        }
+        if (!hasAfter) {
+            return;
+        }
+        if (priceAfterDiscountUsd <= 0) {
+            throw new common_1.BadRequestException('Price after discount (USD) must be greater than zero');
+        }
+        if (priceAfterDiscountUsd >= originalPriceUsd) {
+            throw new common_1.BadRequestException('USD sale price must be lower than original USD price');
+        }
+    }
+    normalizeUsdPricingFields(originalPriceUsd, priceAfterDiscountUsd) {
+        return {
+            originalPriceUsd: originalPriceUsd ?? null,
+            priceAfterDiscountUsd: priceAfterDiscountUsd ?? null,
+        };
+    }
     validateDelivery(deliveryType, deliveryCharge) {
         if (deliveryType === 'CHARGED') {
             if (deliveryCharge == null || deliveryCharge <= 0) {
@@ -54,6 +82,123 @@ let ProductsService = class ProductsService {
         return {
             deliveryType: type,
             deliveryCharge: type === 'CHARGED' ? deliveryCharge ?? null : null,
+        };
+    }
+    resolveComingSoonForCreate(isComingSoon, availableAt) {
+        const enabled = Boolean(isComingSoon);
+        if (!enabled) {
+            return { isComingSoon: false, availableAt: null };
+        }
+        if (!availableAt) {
+            throw new common_1.BadRequestException('Launch date is required when coming soon is enabled.');
+        }
+        const date = new Date(availableAt);
+        if (Number.isNaN(date.getTime())) {
+            throw new common_1.BadRequestException('Invalid launch date.');
+        }
+        return { isComingSoon: true, availableAt: date };
+    }
+    resolveComingSoonForUpdate(dto, existing) {
+        const enabled = dto.isComingSoon !== undefined ? dto.isComingSoon : existing.isComingSoon;
+        if (!enabled) {
+            return { isComingSoon: false, availableAt: null };
+        }
+        const raw = dto.availableAt !== undefined
+            ? dto.availableAt
+            : existing.availableAt?.toISOString();
+        if (!raw) {
+            throw new common_1.BadRequestException('Launch date is required when coming soon is enabled.');
+        }
+        const date = new Date(raw);
+        if (Number.isNaN(date.getTime())) {
+            throw new common_1.BadRequestException('Invalid launch date.');
+        }
+        return { isComingSoon: true, availableAt: date };
+    }
+    resolvePreOrderFields(isPreOrder, preOrderCapacity, expectedShipAt, expectedShipNote) {
+        if (!isPreOrder) {
+            return {
+                isPreOrder: false,
+                preOrderCapacity: null,
+                expectedShipAt: null,
+                expectedShipNote: null,
+            };
+        }
+        if (!preOrderCapacity || preOrderCapacity < 1) {
+            throw new common_1.BadRequestException('Pre-order capacity is required (minimum 1 unit).');
+        }
+        let shipAt = null;
+        if (expectedShipAt) {
+            shipAt = new Date(expectedShipAt);
+            if (Number.isNaN(shipAt.getTime())) {
+                throw new common_1.BadRequestException('Invalid expected ship date.');
+            }
+        }
+        const note = expectedShipNote?.trim() || null;
+        if (!shipAt && !note) {
+            throw new common_1.BadRequestException('Add an expected ship date or note for pre-order products.');
+        }
+        return {
+            isPreOrder: true,
+            preOrderCapacity,
+            expectedShipAt: shipAt,
+            expectedShipNote: note,
+        };
+    }
+    resolveFulfillmentForCreate(dto) {
+        if (dto.isComingSoon) {
+            const comingSoon = this.resolveComingSoonForCreate(true, dto.availableAt);
+            return {
+                ...comingSoon,
+                ...this.resolvePreOrderFields(false),
+            };
+        }
+        if (dto.isPreOrder) {
+            return {
+                isComingSoon: false,
+                availableAt: null,
+                ...this.resolvePreOrderFields(true, dto.preOrderCapacity, dto.expectedShipAt, dto.expectedShipNote),
+            };
+        }
+        return {
+            isComingSoon: false,
+            availableAt: null,
+            ...this.resolvePreOrderFields(false),
+        };
+    }
+    resolveFulfillmentForUpdate(dto, existing) {
+        const nextComingSoon = dto.isComingSoon !== undefined ? dto.isComingSoon : existing.isComingSoon;
+        const nextPreOrder = dto.isPreOrder !== undefined ? dto.isPreOrder : existing.isPreOrder;
+        if (nextComingSoon && nextPreOrder) {
+            throw new common_1.BadRequestException('A product cannot be both coming soon and pre-order.');
+        }
+        if (nextComingSoon) {
+            const comingSoon = this.resolveComingSoonForUpdate({ isComingSoon: true, availableAt: dto.availableAt }, existing);
+            return {
+                ...comingSoon,
+                ...this.resolvePreOrderFields(false),
+            };
+        }
+        if (nextPreOrder) {
+            const capacity = dto.preOrderCapacity !== undefined
+                ? dto.preOrderCapacity
+                : existing.preOrderCapacity ?? undefined;
+            const expectedShipAt = dto.expectedShipAt !== undefined
+                ? dto.expectedShipAt
+                : existing.expectedShipAt?.toISOString();
+            const expectedShipNote = dto.expectedShipNote !== undefined
+                ? dto.expectedShipNote
+                : existing.expectedShipNote;
+            return {
+                isComingSoon: false,
+                availableAt: null,
+                ...this.resolvePreOrderFields(true, capacity, expectedShipAt, expectedShipNote),
+            };
+        }
+        return {
+            isComingSoon: false,
+            availableAt: null,
+            ...this.resolvePreOrderFields(false),
         };
     }
     async createUniqueSlug(name, excludeId) {
@@ -99,9 +244,12 @@ let ProductsService = class ProductsService {
     }
     async createProduct(dto) {
         this.validatePricing(dto.originalPrice, dto.priceAfterDiscount);
+        this.validateUsdPricing(dto.originalPriceUsd, dto.priceAfterDiscountUsd);
         this.validateDelivery(dto.deliveryType, dto.deliveryCharge);
         const delivery = this.resolveDelivery(dto.deliveryType, dto.deliveryCharge);
+        const fulfillment = this.resolveFulfillmentForCreate(dto);
         const slug = await this.createUniqueSlug(dto.name);
+        const usdPricing = this.normalizeUsdPricingFields(dto.originalPriceUsd, dto.priceAfterDiscountUsd);
         try {
             const product = await this.prisma.product.create({
                 data: {
@@ -109,9 +257,14 @@ let ProductsService = class ProductsService {
                     slug,
                     description: dto.description,
                     detailsHtml: (0, product_mapper_1.normalizeDetailsHtml)(dto.detailsHtml),
+                    specsHtml: (0, product_mapper_1.normalizeDetailsHtml)(dto.specsHtml),
+                    whatsIncludedHtml: (0, product_mapper_1.normalizeDetailsHtml)(dto.whatsIncludedHtml),
+                    shippingReturnsHtml: (0, product_mapper_1.normalizeDetailsHtml)(dto.shippingReturnsHtml),
                     category: dto.category,
                     originalPrice: dto.originalPrice,
                     priceAfterDiscount: dto.priceAfterDiscount ?? null,
+                    originalPriceUsd: usdPricing.originalPriceUsd,
+                    priceAfterDiscountUsd: usdPricing.priceAfterDiscountUsd,
                     badge: (0, product_mapper_1.normalizeBadge)(dto.badge),
                     imageUrl: dto.imageUrl,
                     hoverImageUrl: dto.hoverImageUrl || null,
@@ -124,6 +277,12 @@ let ProductsService = class ProductsService {
                     isPopular: dto.isPopular,
                     deliveryType: delivery.deliveryType,
                     deliveryCharge: delivery.deliveryCharge,
+                    isComingSoon: fulfillment.isComingSoon,
+                    availableAt: fulfillment.availableAt,
+                    isPreOrder: fulfillment.isPreOrder,
+                    preOrderCapacity: fulfillment.preOrderCapacity,
+                    expectedShipAt: fulfillment.expectedShipAt,
+                    expectedShipNote: fulfillment.expectedShipNote,
                 },
             });
             return this.toAdminProduct(product);
@@ -148,12 +307,25 @@ let ProductsService = class ProductsService {
             ? dto.priceAfterDiscount
             : existing.priceAfterDiscount;
         this.validatePricing(originalPrice, priceAfterDiscount);
+        const originalPriceUsd = dto.originalPriceUsd !== undefined
+            ? dto.originalPriceUsd
+            : existing.originalPriceUsd;
+        const priceAfterDiscountUsd = dto.priceAfterDiscountUsd !== undefined
+            ? dto.priceAfterDiscountUsd
+            : existing.priceAfterDiscountUsd;
+        this.validateUsdPricing(originalPriceUsd, priceAfterDiscountUsd);
         const nextDeliveryType = dto.deliveryType ?? existing.deliveryType ?? 'FREE';
         const nextDeliveryCharge = dto.deliveryCharge !== undefined
             ? dto.deliveryCharge
             : existing.deliveryCharge;
         this.validateDelivery(nextDeliveryType, nextDeliveryCharge);
         const delivery = this.resolveDelivery(nextDeliveryType, nextDeliveryCharge);
+        const fulfillment = this.resolveFulfillmentForUpdate(dto, existing);
+        if (fulfillment.isPreOrder &&
+            fulfillment.preOrderCapacity != null &&
+            fulfillment.preOrderCapacity < (existing.preOrderReserved ?? 0)) {
+            throw new common_1.BadRequestException(`Pre-order capacity cannot be lower than ${existing.preOrderReserved} already reserved.`);
+        }
         const slug = dto.name && dto.name !== existing.name
             ? await this.createUniqueSlug(dto.name, id)
             : existing.slug;
@@ -166,9 +338,24 @@ let ProductsService = class ProductsService {
                 detailsHtml: dto.detailsHtml !== undefined
                     ? (0, product_mapper_1.normalizeDetailsHtml)(dto.detailsHtml)
                     : existing.detailsHtml,
+                specsHtml: dto.specsHtml !== undefined
+                    ? (0, product_mapper_1.normalizeDetailsHtml)(dto.specsHtml)
+                    : existing.specsHtml,
+                whatsIncludedHtml: dto.whatsIncludedHtml !== undefined
+                    ? (0, product_mapper_1.normalizeDetailsHtml)(dto.whatsIncludedHtml)
+                    : existing.whatsIncludedHtml,
+                shippingReturnsHtml: dto.shippingReturnsHtml !== undefined
+                    ? (0, product_mapper_1.normalizeDetailsHtml)(dto.shippingReturnsHtml)
+                    : existing.shippingReturnsHtml,
                 category: dto.category ?? existing.category,
                 originalPrice,
                 priceAfterDiscount,
+                originalPriceUsd: dto.originalPriceUsd !== undefined
+                    ? dto.originalPriceUsd
+                    : existing.originalPriceUsd,
+                priceAfterDiscountUsd: dto.priceAfterDiscountUsd !== undefined
+                    ? dto.priceAfterDiscountUsd
+                    : existing.priceAfterDiscountUsd,
                 badge: dto.badge !== undefined
                     ? (0, product_mapper_1.normalizeBadge)(dto.badge)
                     : existing.badge,
@@ -193,6 +380,12 @@ let ProductsService = class ProductsService {
                 isPopular: dto.isPopular ?? existing.isPopular,
                 deliveryType: delivery.deliveryType,
                 deliveryCharge: delivery.deliveryCharge,
+                isComingSoon: fulfillment.isComingSoon,
+                availableAt: fulfillment.availableAt,
+                isPreOrder: fulfillment.isPreOrder,
+                preOrderCapacity: fulfillment.preOrderCapacity,
+                expectedShipAt: fulfillment.expectedShipAt,
+                expectedShipNote: fulfillment.expectedShipNote,
             },
         });
         return this.toAdminProduct(product);
@@ -246,9 +439,14 @@ let ProductsService = class ProductsService {
             slug: product.slug,
             description: product.description,
             detailsHtml: (0, product_mapper_1.normalizeDetailsHtml)(product.detailsHtml),
+            specsHtml: (0, product_mapper_1.normalizeDetailsHtml)(product.specsHtml),
+            whatsIncludedHtml: (0, product_mapper_1.normalizeDetailsHtml)(product.whatsIncludedHtml),
+            shippingReturnsHtml: (0, product_mapper_1.normalizeDetailsHtml)(product.shippingReturnsHtml),
             category: product.category,
             originalPrice: product.originalPrice,
             priceAfterDiscount: product.priceAfterDiscount,
+            originalPriceUsd: product.originalPriceUsd,
+            priceAfterDiscountUsd: product.priceAfterDiscountUsd,
             price: (0, product_mapper_1.mapProductToPublic)(product).price,
             discountPercent,
             badge: (0, product_mapper_1.normalizeBadge)(product.badge),
@@ -263,6 +461,13 @@ let ProductsService = class ProductsService {
             isPopular: product.isPopular,
             deliveryType: product.deliveryType ?? 'FREE',
             deliveryCharge: product.deliveryCharge,
+            isComingSoon: product.isComingSoon,
+            availableAt: product.availableAt,
+            isPreOrder: product.isPreOrder,
+            preOrderCapacity: product.preOrderCapacity,
+            preOrderReserved: product.preOrderReserved ?? 0,
+            expectedShipAt: product.expectedShipAt,
+            expectedShipNote: product.expectedShipNote,
             createdAt: product.createdAt,
             updatedAt: product.updatedAt,
         };

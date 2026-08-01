@@ -5,6 +5,9 @@ export type PublicProduct = {
     name: string;
     description: string | null;
     detailsHtml: string | null;
+    specsHtml: string | null;
+    whatsIncludedHtml: string | null;
+    shippingReturnsHtml: string | null;
     category: string;
     price: number;
     originalPrice: number | null;
@@ -16,6 +19,15 @@ export type PublicProduct = {
     stock: number;
     deliveryType: string;
     deliveryCharge: number | null;
+    isComingSoon: boolean;
+    availableAt: string | null;
+    isPreOrder: boolean;
+    preOrderCapacity: number | null;
+    preOrderSlotsRemaining: number | null;
+    expectedShipAt: string | null;
+    expectedShipNote: string | null;
+    priceUsd: number | null;
+    originalPriceUsd: number | null;
 };
 export declare function hasProductDiscount(product: Pick<Product, 'originalPrice' | 'priceAfterDiscount'>): boolean;
 export declare function getSellingPrice(product: Pick<Product, 'originalPrice' | 'priceAfterDiscount'>): number;

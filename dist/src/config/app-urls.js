@@ -18,10 +18,24 @@ function toAbsoluteBase(url) {
 function buildGoogleCallbackUrl(base) {
     return `${toAbsoluteBase(base)}/api/auth/google/callback`;
 }
+function normalizeLocalOAuthBase(url) {
+    return url
+        .trim()
+        .replace(/\/$/, '')
+        .replace(/\/api$/, '')
+        .replace(/^http:\/\/localhost(?=[:/])/i, 'http://127.0.0.1');
+}
+function normalizeLocalCallbackUrl(url) {
+    return url.trim().replace(/^http:\/\/localhost(?=[:/])/i, 'http://127.0.0.1');
+}
 function isPreviewVercelHost(hostname) {
     return /-[a-z0-9]+-[^.]+\.vercel\.app$/i.test(hostname);
 }
 function resolveGoogleCallbackUrl(configService) {
+    const publicBase = configService.get('BACKEND_PUBLIC_URL')?.trim();
+    if (publicBase) {
+        return buildGoogleCallbackUrl(normalizeLocalOAuthBase(publicBase));
+    }
     const explicit = configService.get('GOOGLE_CALLBACK_URL')?.trim();
     if (explicit && !explicit.includes('localhost')) {
         return explicit;
@@ -36,10 +50,10 @@ function resolveGoogleCallbackUrl(configService) {
         return buildGoogleCallbackUrl(vercelUrl);
     }
     if (explicit) {
-        return explicit;
+        return normalizeLocalCallbackUrl(explicit);
     }
     const port = configService.get('PORT') ?? '4000';
-    return `http://localhost:${port}/api/auth/google/callback`;
+    return `http://127.0.0.1:${port}/api/auth/google/callback`;
 }
 function resolveFrontendUrl(configService) {
     const origins = parseUrlList(configService.get('FRONTEND_URL') ?? 'http://localhost:3000');

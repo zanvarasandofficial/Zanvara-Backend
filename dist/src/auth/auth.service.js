@@ -212,10 +212,9 @@ let AuthService = class AuthService {
     buildFrontendCallbackUrl(accessToken, redirectPath) {
         const frontendUrl = (0, app_urls_1.resolveFrontendUrl)(this.configService);
         const params = new URLSearchParams({
-            token: accessToken,
             redirect: redirectPath,
         });
-        return `${frontendUrl}/auth/callback?${params.toString()}`;
+        return `${frontendUrl}/auth/callback?${params.toString()}#token=${encodeURIComponent(accessToken)}`;
     }
     decodeRedirectState(state) {
         if (!state) {

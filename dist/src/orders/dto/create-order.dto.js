@@ -89,6 +89,9 @@ class CreateOrderDto {
     deliveryTotal;
     total;
     paymentMethod;
+    displayCurrency;
+    exchangeRate;
+    customerCountry;
     customer;
 }
 exports.CreateOrderDto = CreateOrderDto;
@@ -118,6 +121,22 @@ __decorate([
     (0, class_validator_1.IsString)(),
     __metadata("design:type", String)
 ], CreateOrderDto.prototype, "paymentMethod", void 0);
+__decorate([
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)(),
+    __metadata("design:type", String)
+], CreateOrderDto.prototype, "displayCurrency", void 0);
+__decorate([
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsNumber)(),
+    (0, class_validator_1.Min)(0),
+    __metadata("design:type", Number)
+], CreateOrderDto.prototype, "exchangeRate", void 0);
+__decorate([
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)(),
+    __metadata("design:type", String)
+], CreateOrderDto.prototype, "customerCountry", void 0);
 __decorate([
     (0, class_validator_1.ValidateNested)(),
     (0, class_transformer_1.Type)(() => CreateOrderCustomerDto),

@@ -9,8 +9,11 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.SettingsModule = void 0;
 const common_1 = require("@nestjs/common");
 const admin_hero_controller_1 = require("../admin/admin-hero.controller");
+const admin_store_settings_controller_1 = require("../admin/admin-store-settings.controller");
 const hero_controller_1 = require("./hero.controller");
 const hero_service_1 = require("./hero.service");
+const store_settings_controller_1 = require("./store-settings.controller");
+const store_settings_service_1 = require("./store-settings.service");
 const storefront_stats_controller_1 = require("./storefront-stats.controller");
 const storefront_stats_service_1 = require("./storefront-stats.service");
 let SettingsModule = class SettingsModule {
@@ -18,9 +21,15 @@ let SettingsModule = class SettingsModule {
 exports.SettingsModule = SettingsModule;
 exports.SettingsModule = SettingsModule = __decorate([
     (0, common_1.Module)({
-        controllers: [hero_controller_1.HeroController, admin_hero_controller_1.AdminHeroController, storefront_stats_controller_1.StorefrontStatsController],
-        providers: [hero_service_1.HeroService, storefront_stats_service_1.StorefrontStatsService],
-        exports: [hero_service_1.HeroService, storefront_stats_service_1.StorefrontStatsService],
+        controllers: [
+            hero_controller_1.HeroController,
+            admin_hero_controller_1.AdminHeroController,
+            store_settings_controller_1.StoreSettingsController,
+            admin_store_settings_controller_1.AdminStoreSettingsController,
+            storefront_stats_controller_1.StorefrontStatsController,
+        ],
+        providers: [hero_service_1.HeroService, store_settings_service_1.StoreSettingsService, storefront_stats_service_1.StorefrontStatsService],
+        exports: [hero_service_1.HeroService, store_settings_service_1.StoreSettingsService, storefront_stats_service_1.StorefrontStatsService],
     })
 ], SettingsModule);
 //# sourceMappingURL=settings.module.js.map

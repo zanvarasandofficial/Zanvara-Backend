@@ -9,15 +9,19 @@ var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.UpdateOrderStatusDto = void 0;
+exports.ORDER_STATUSES = exports.UpdateOrderStatusDto = void 0;
 const class_validator_1 = require("class-validator");
 const ORDER_STATUSES = [
     'pending',
+    'pre_order_confirmed',
+    'in_production',
+    'ready_to_ship',
     'confirmed',
     'shipped',
     'delivered',
     'cancelled',
 ];
+exports.ORDER_STATUSES = ORDER_STATUSES;
 class UpdateOrderStatusDto {
     status;
 }

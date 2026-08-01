@@ -210,11 +210,11 @@ export class AuthService {
   buildFrontendCallbackUrl(accessToken: string, redirectPath: string) {
     const frontendUrl = resolveFrontendUrl(this.configService);
     const params = new URLSearchParams({
-      token: accessToken,
       redirect: redirectPath,
     });
 
-    return `${frontendUrl}/auth/callback?${params.toString()}`;
+    // Token in hash avoids proxy/logs truncating long JWT query strings.
+    return `${frontendUrl}/auth/callback?${params.toString()}#token=${encodeURIComponent(accessToken)}`;
   }
 
   decodeRedirectState(state?: string) {

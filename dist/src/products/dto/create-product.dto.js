@@ -15,9 +15,14 @@ class CreateProductDto {
     name;
     description;
     detailsHtml;
+    specsHtml;
+    whatsIncludedHtml;
+    shippingReturnsHtml;
     category;
     originalPrice;
     priceAfterDiscount;
+    originalPriceUsd;
+    priceAfterDiscountUsd;
     badge;
     imageUrl;
     hoverImageUrl;
@@ -30,6 +35,12 @@ class CreateProductDto {
     isPopular;
     deliveryType;
     deliveryCharge;
+    isComingSoon;
+    availableAt;
+    isPreOrder;
+    preOrderCapacity;
+    expectedShipAt;
+    expectedShipNote;
 }
 exports.CreateProductDto = CreateProductDto;
 __decorate([
@@ -48,6 +59,21 @@ __decorate([
     __metadata("design:type", Object)
 ], CreateProductDto.prototype, "detailsHtml", void 0);
 __decorate([
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)(),
+    __metadata("design:type", Object)
+], CreateProductDto.prototype, "specsHtml", void 0);
+__decorate([
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)(),
+    __metadata("design:type", Object)
+], CreateProductDto.prototype, "whatsIncludedHtml", void 0);
+__decorate([
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)(),
+    __metadata("design:type", Object)
+], CreateProductDto.prototype, "shippingReturnsHtml", void 0);
+__decorate([
     (0, class_validator_1.IsString)(),
     (0, class_validator_1.MinLength)(2),
     __metadata("design:type", String)
@@ -63,6 +89,19 @@ __decorate([
     (0, class_validator_1.Min)(0.01),
     __metadata("design:type", Object)
 ], CreateProductDto.prototype, "priceAfterDiscount", void 0);
+__decorate([
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsNumber)(),
+    (0, class_validator_1.Min)(0.01),
+    __metadata("design:type", Object)
+], CreateProductDto.prototype, "originalPriceUsd", void 0);
+__decorate([
+    (0, class_validator_1.ValidateIf)((_, value) => value !== null && value !== undefined),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsNumber)(),
+    (0, class_validator_1.Min)(0.01),
+    __metadata("design:type", Object)
+], CreateProductDto.prototype, "priceAfterDiscountUsd", void 0);
 __decorate([
     (0, class_validator_1.IsOptional)(),
     (0, class_validator_1.IsString)(),
@@ -122,4 +161,36 @@ __decorate([
     (0, class_validator_1.Min)(0.01),
     __metadata("design:type", Object)
 ], CreateProductDto.prototype, "deliveryCharge", void 0);
+__decorate([
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsBoolean)(),
+    __metadata("design:type", Boolean)
+], CreateProductDto.prototype, "isComingSoon", void 0);
+__decorate([
+    (0, class_validator_1.ValidateIf)((dto) => dto.isComingSoon === true),
+    (0, class_validator_1.IsDateString)(),
+    __metadata("design:type", String)
+], CreateProductDto.prototype, "availableAt", void 0);
+__decorate([
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsBoolean)(),
+    __metadata("design:type", Boolean)
+], CreateProductDto.prototype, "isPreOrder", void 0);
+__decorate([
+    (0, class_validator_1.ValidateIf)((dto) => dto.isPreOrder === true),
+    (0, class_validator_1.IsInt)(),
+    (0, class_validator_1.Min)(1),
+    __metadata("design:type", Number)
+], CreateProductDto.prototype, "preOrderCapacity", void 0);
+__decorate([
+    (0, class_validator_1.ValidateIf)((dto) => dto.isPreOrder === true),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsDateString)(),
+    __metadata("design:type", String)
+], CreateProductDto.prototype, "expectedShipAt", void 0);
+__decorate([
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)(),
+    __metadata("design:type", Object)
+], CreateProductDto.prototype, "expectedShipNote", void 0);
 //# sourceMappingURL=create-product.dto.js.map

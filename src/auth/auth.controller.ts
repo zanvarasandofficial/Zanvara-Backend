@@ -16,6 +16,7 @@ import { LoginDto, RegisterDto } from './dto/auth.dto';
 import { RequestOtpDto, VerifyOtpDto } from './dto/otp.dto';
 import { UpdateProfileDto } from './dto/update-profile.dto';
 import { GoogleAuthGuard } from './guards/google-auth.guard';
+import { GoogleCallbackGuard } from './guards/google-callback.guard';
 import type { GoogleProfilePayload } from './strategies/google.strategy';
 import type { AuthenticatedUser } from './types/authenticated-user.type';
 
@@ -50,7 +51,7 @@ export class AuthController {
   }
 
   @Get('google/callback')
-  @UseGuards(AuthGuard('google'))
+  @UseGuards(GoogleCallbackGuard)
   async googleCallback(
     @Req() req: { user: GoogleProfilePayload; query?: { state?: string } },
     @Res() res: Response,

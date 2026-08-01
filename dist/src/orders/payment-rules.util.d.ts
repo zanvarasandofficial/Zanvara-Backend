@@ -1,0 +1,8 @@
+import type { Request } from 'express';
+export declare const PAYMENT_METHOD_COD = "Cash on Delivery (COD)";
+export declare const PAYMENT_METHOD_ONLINE = "Online Payment (Card)";
+export declare function normalizePaymentMethod(method: string | undefined | null): string;
+export declare function isCashOnDeliveryPayment(method: string | undefined | null): boolean;
+export declare function isOnlinePaymentMethod(method: string | undefined | null): boolean;
+export declare function resolveOrderVisitorCountry(dtoCountry: string | undefined, req: Request): string | null;
+export declare function validatePaymentForCountry(paymentMethod: string | undefined | null, countryCode: string | null): string;

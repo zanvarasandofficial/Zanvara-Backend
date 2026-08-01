@@ -3,13 +3,14 @@ import { AdminNotificationsService } from '../notifications/admin-notifications.
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { UpdateOrderStatusDto } from './dto/update-order-status.dto';
+import type { Request } from 'express';
 export declare class OrdersService {
     private readonly prisma;
     private readonly mailService;
     private readonly notificationsService;
     private readonly logger;
     constructor(prisma: PrismaService, mailService: MailService, notificationsService: AdminNotificationsService);
-    create(userId: string, dto: CreateOrderDto): Promise<{
+    create(userId: string, dto: CreateOrderDto, req: Request): Promise<{
         id: string;
         userId: string;
         items: {
@@ -32,6 +33,10 @@ export declare class OrdersService {
             notes: string;
         };
         status: string;
+        fulfillmentKind: string;
+        displayCurrency: string;
+        exchangeRate: number | null;
+        customerCountry: string | null;
         createdAt: string;
         updatedAt: string;
     }>;
@@ -58,6 +63,10 @@ export declare class OrdersService {
             notes: string;
         };
         status: string;
+        fulfillmentKind: string;
+        displayCurrency: string;
+        exchangeRate: number | null;
+        customerCountry: string | null;
         createdAt: string;
         updatedAt: string;
     }[]>;
@@ -84,6 +93,10 @@ export declare class OrdersService {
             notes: string;
         };
         status: string;
+        fulfillmentKind: string;
+        displayCurrency: string;
+        exchangeRate: number | null;
+        customerCountry: string | null;
         createdAt: string;
         updatedAt: string;
     }>;
@@ -107,6 +120,7 @@ export declare class OrdersService {
         }[];
         itemCount: number;
         status: string;
+        fulfillmentKind: string;
         payment: string;
         date: string;
         createdAt: string;
@@ -133,6 +147,7 @@ export declare class OrdersService {
         }[];
         itemCount: number;
         status: string;
+        fulfillmentKind: string;
         payment: string;
         date: string;
         createdAt: string;
@@ -159,12 +174,14 @@ export declare class OrdersService {
         }[];
         itemCount: number;
         status: string;
+        fulfillmentKind: string;
         payment: string;
         date: string;
         createdAt: string;
         updatedAt: string;
         userId: string;
     }>;
+    private releaseOrderReservations;
     private applyStockChange;
     private parseOrderItems;
     private findOrderRecord;
