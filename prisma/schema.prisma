@@ -86,6 +86,7 @@ model Product {
   isPopular          Boolean  @default(false)
   deliveryType       String   @default("FREE")
   deliveryCharge     Float?
+  deliveryOptions    Json?
   isComingSoon       Boolean  @default(false)
   availableAt        DateTime?
   isPreOrder         Boolean  @default(false)
@@ -121,6 +122,14 @@ model Order {
   exchangeRate    Float?
   customerCountry String?
   paymentMethod   String   @default("Cash on Delivery")
+  onlinePaymentDue Float   @default(0)
+  balanceOnDelivery Float  @default(0)
+  onlinePaymentReceived Float @default(0)
+  onlinePaymentNote   String?
+  onlinePaymentRecordedAt DateTime?
+  balancePaymentReceived Float @default(0)
+  balancePaymentNote   String?
+  balancePaymentRecordedAt DateTime?
   subtotal        Float
   deliveryTotal   Float
   total           Float
@@ -129,6 +138,7 @@ model Order {
   customerPhone   String
   customerAddress String
   customerCity    String
+  shippingCountry String?
   customerNotes   String?
   items           Json
   stockAdjusted   Boolean  @default(false)

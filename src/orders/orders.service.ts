@@ -7,6 +7,12 @@ import {
 import { Order, Prisma } from '@prisma/client';
 import { MailService } from '../mail/mail.service';
 import {
+  formatDeliveryEta,
+  getDefaultDeliveryOption,
+  getDeliveryOptionById,
+  resolveDeliveryOptionsFromProduct,
+} from '../products/delivery-options.util';
+import {
   getProductFulfillmentMode,
   getPreOrderSlotsRemaining,
   getPurchasableQuantity,
@@ -15,12 +21,15 @@ import {
 import { AdminNotificationsService } from '../notifications/admin-notifications.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateOrderDto } from './dto/create-order.dto';
+import { UpdateOrderPaymentDto } from './dto/update-order-payment.dto';
 import { UpdateOrderStatusDto } from './dto/update-order-status.dto';
+import { roundOrderMoney } from './order-payment.util';
 import { mapOrder, mapOrderForAdmin } from './order.mapper';
 import {
-  resolveOrderVisitorCountry,
-  validatePaymentForCountry,
-} from './payment-rules.util';
+  calculateOrderPaymentRequirement,
+  validatePaymentForDeliveryRequirement,
+} from './delivery-payment.util';
+import { resolveOrderVisitorCountry } from './payment-rules.util';
 import type { Request } from 'express';
 
 type OrderItem = {
@@ -32,6 +41,11 @@ type OrderItem = {
   fulfillmentType?: 'STANDARD' | 'PRE_ORDER';
   expectedShipAt?: string | null;
   expectedShipNote?: string | null;
+  deliveryOptionId?: string;
+  deliveryLabel?: string;
+  deliveryCharge?: number;
+  deliveryEta?: string;
+  onlinePaymentPercent?: number;
 };
 
 @Injectable()
@@ -55,9 +69,20 @@ export class OrdersService {
     });
     const productMap = new Map(products.map((product) => [product.id, product]));
 
+    const storeSettings = await this.prisma.storeSetting.findFirst();
+    const freeDeliveryMinTableQuantity =
+      storeSettings?.freeDeliveryMinTableQuantity ?? 2;
+    const totalUnits = dto.items.reduce(
+      (sum, item) => sum + item.quantity,
+      0,
+    );
+    const qualifiesForFreeDelivery =
+      totalUnits >= freeDeliveryMinTableQuantity;
+
     const enrichedItems: OrderItem[] = [];
     let hasPreOrder = false;
     let hasStandard = false;
+    let computedDeliveryTotal = 0;
 
     for (const item of dto.items) {
       const product = productMap.get(item.productId);
@@ -96,6 +121,19 @@ export class OrdersService {
         hasStandard = true;
       }
 
+      const deliveryOptions = resolveDeliveryOptionsFromProduct(product);
+      const selectedOption =
+        getDeliveryOptionById(deliveryOptions, item.deliveryOptionId) ??
+        getDefaultDeliveryOption(deliveryOptions);
+
+      if (!selectedOption) {
+        throw new BadRequestException(
+          `Choose a valid delivery option for ${item.name}.`,
+        );
+      }
+
+      computedDeliveryTotal += selectedOption.charge;
+
       enrichedItems.push({
         productId: item.productId,
         name: item.name,
@@ -105,7 +143,48 @@ export class OrdersService {
         fulfillmentType,
         expectedShipAt: product.expectedShipAt?.toISOString() ?? null,
         expectedShipNote: product.expectedShipNote ?? null,
+        deliveryOptionId: selectedOption.id,
+        deliveryLabel: selectedOption.label,
+        deliveryCharge: selectedOption.charge,
+        deliveryEta: formatDeliveryEta(
+          selectedOption.minDays,
+          selectedOption.maxDays,
+        ),
+        onlinePaymentPercent: selectedOption.onlinePaymentPercent ?? 0,
       });
+    }
+
+    if (qualifiesForFreeDelivery) {
+      computedDeliveryTotal = 0;
+    }
+
+    if (Math.abs(computedDeliveryTotal - dto.deliveryTotal) > 0.01) {
+      throw new BadRequestException(
+        'Delivery total changed. Refresh your cart and try again.',
+      );
+    }
+
+    const paymentRequirement = calculateOrderPaymentRequirement(
+      enrichedItems.map((item) => ({
+        productId: item.productId,
+        name: item.name,
+        quantity: item.quantity,
+        price: item.price ?? 0,
+        deliveryOptionId: item.deliveryOptionId,
+        deliveryCharge: qualifiesForFreeDelivery ? 0 : item.deliveryCharge ?? 0,
+        onlinePaymentPercent: item.onlinePaymentPercent ?? 0,
+      })),
+      dto.total,
+      qualifiesForFreeDelivery,
+    );
+
+    if (
+      Math.abs(paymentRequirement.onlinePaymentDue - (dto.onlinePaymentDue ?? 0)) >
+      0.01
+    ) {
+      throw new BadRequestException(
+        'Payment amount changed. Refresh checkout and try again.',
+      );
     }
 
     const fulfillmentKind = hasPreOrder
@@ -123,8 +202,9 @@ export class OrdersService {
       dto.customerCountry,
       req,
     );
-    const paymentMethod = validatePaymentForCountry(
+    const paymentMethod = validatePaymentForDeliveryRequirement(
       dto.paymentMethod,
+      paymentRequirement,
       visitorCountry,
     );
 
@@ -167,6 +247,8 @@ export class OrdersService {
           customerCountry:
             (visitorCountry ?? dto.customerCountry?.trim().toUpperCase()) || null,
           paymentMethod,
+          onlinePaymentDue: paymentRequirement.onlinePaymentDue,
+          balanceOnDelivery: paymentRequirement.balanceOnDelivery,
           subtotal: dto.subtotal,
           deliveryTotal: dto.deliveryTotal,
           total: dto.total,
@@ -175,6 +257,7 @@ export class OrdersService {
           customerPhone: dto.customer.phone.trim(),
           customerAddress: dto.customer.address.trim(),
           customerCity: dto.customer.city.trim(),
+          shippingCountry: dto.customer.country.trim(),
           customerNotes: dto.customer.notes?.trim() || null,
           items: enrichedItems as unknown as Prisma.InputJsonValue,
         },
@@ -230,6 +313,71 @@ export class OrdersService {
   async findOneAdmin(idOrNumber: string) {
     const order = await this.findOrderRecord(idOrNumber);
     return mapOrderForAdmin(order);
+  }
+
+  async updatePaymentAdmin(idOrNumber: string, dto: UpdateOrderPaymentDto) {
+    const order = await this.findOrderRecord(idOrNumber);
+    const onlineDue = order.onlinePaymentDue ?? 0;
+    const balanceDue = order.balanceOnDelivery ?? 0;
+
+    const onlineReceived =
+      dto.onlinePaymentReceived !== undefined
+        ? roundOrderMoney(dto.onlinePaymentReceived)
+        : (order.onlinePaymentReceived ?? 0);
+    const balanceReceived =
+      dto.balancePaymentReceived !== undefined
+        ? roundOrderMoney(dto.balancePaymentReceived)
+        : (order.balancePaymentReceived ?? 0);
+
+    if (onlineDue <= 0 && onlineReceived > 0) {
+      throw new BadRequestException(
+        'This order does not require an online payment.',
+      );
+    }
+
+    if (onlineReceived > onlineDue + 0.01) {
+      throw new BadRequestException(
+        `Online received amount cannot exceed ${onlineDue} PKR.`,
+      );
+    }
+
+    if (balanceDue <= 0 && balanceReceived > 0) {
+      throw new BadRequestException(
+        'This order does not have a balance due on delivery.',
+      );
+    }
+
+    if (balanceReceived > balanceDue + 0.01) {
+      throw new BadRequestException(
+        `Delivery received amount cannot exceed ${balanceDue} PKR.`,
+      );
+    }
+
+    const updated = await this.prisma.order.update({
+      where: { id: order.id },
+      data: {
+        ...(dto.onlinePaymentReceived !== undefined
+          ? {
+              onlinePaymentReceived: onlineReceived,
+              onlinePaymentRecordedAt: new Date(),
+            }
+          : {}),
+        ...(dto.onlinePaymentNote !== undefined
+          ? { onlinePaymentNote: dto.onlinePaymentNote?.trim() || null }
+          : {}),
+        ...(dto.balancePaymentReceived !== undefined
+          ? {
+              balancePaymentReceived: balanceReceived,
+              balancePaymentRecordedAt: new Date(),
+            }
+          : {}),
+        ...(dto.balancePaymentNote !== undefined
+          ? { balancePaymentNote: dto.balancePaymentNote?.trim() || null }
+          : {}),
+      },
+    });
+
+    return mapOrderForAdmin(updated);
   }
 
   async updateStatusAdmin(idOrNumber: string, dto: UpdateOrderStatusDto) {

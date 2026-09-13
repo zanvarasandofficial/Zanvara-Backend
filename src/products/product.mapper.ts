@@ -1,4 +1,8 @@
 import type { Product } from '@prisma/client';
+import {
+  resolveDeliveryOptionsFromProduct,
+  type ProductDeliveryOption,
+} from './delivery-options.util';
 import { getPreOrderSlotsRemaining } from './product-fulfillment.util';
 
 export type PublicProduct = {
@@ -21,6 +25,7 @@ export type PublicProduct = {
   stock: number;
   deliveryType: string;
   deliveryCharge: number | null;
+  deliveryOptions: ProductDeliveryOption[];
   isComingSoon: boolean;
   availableAt: string | null;
   isPreOrder: boolean;
@@ -115,6 +120,7 @@ export function mapProductToPublic(product: Product): PublicProduct {
     deliveryType: product.deliveryType ?? 'FREE',
     deliveryCharge:
       product.deliveryType === 'CHARGED' ? product.deliveryCharge : null,
+    deliveryOptions: resolveDeliveryOptionsFromProduct(product),
     isComingSoon: Boolean(product.isComingSoon),
     availableAt: product.availableAt?.toISOString() ?? null,
     isPreOrder: Boolean(product.isPreOrder),

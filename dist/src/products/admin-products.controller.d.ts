@@ -32,6 +32,7 @@ export declare class AdminProductsController {
         isPopular: boolean;
         deliveryType: string;
         deliveryCharge: number | null;
+        deliveryOptions: import("./delivery-options.util").ProductDeliveryOption[];
         isComingSoon: boolean;
         availableAt: Date | null;
         isPreOrder: boolean;
@@ -70,6 +71,7 @@ export declare class AdminProductsController {
         isPopular: boolean;
         deliveryType: string;
         deliveryCharge: number | null;
+        deliveryOptions: import("./delivery-options.util").ProductDeliveryOption[];
         isComingSoon: boolean;
         availableAt: Date | null;
         isPreOrder: boolean;
@@ -108,6 +110,7 @@ export declare class AdminProductsController {
         isPopular: boolean;
         deliveryType: string;
         deliveryCharge: number | null;
+        deliveryOptions: import("./delivery-options.util").ProductDeliveryOption[];
         isComingSoon: boolean;
         availableAt: Date | null;
         isPreOrder: boolean;
@@ -146,6 +149,7 @@ export declare class AdminProductsController {
         isPopular: boolean;
         deliveryType: string;
         deliveryCharge: number | null;
+        deliveryOptions: import("./delivery-options.util").ProductDeliveryOption[];
         isComingSoon: boolean;
         availableAt: Date | null;
         isPreOrder: boolean;

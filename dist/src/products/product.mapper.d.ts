@@ -1,4 +1,5 @@
 import type { Product } from '@prisma/client';
+import { type ProductDeliveryOption } from './delivery-options.util';
 export type PublicProduct = {
     id: string;
     slug: string;
@@ -19,6 +20,7 @@ export type PublicProduct = {
     stock: number;
     deliveryType: string;
     deliveryCharge: number | null;
+    deliveryOptions: ProductDeliveryOption[];
     isComingSoon: boolean;
     availableAt: string | null;
     isPreOrder: boolean;

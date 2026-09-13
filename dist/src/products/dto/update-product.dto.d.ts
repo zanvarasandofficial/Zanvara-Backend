@@ -1,3 +1,4 @@
+import { ProductDeliveryOptionDto } from './product-delivery-option.dto';
 export declare class UpdateProductDto {
     name?: string;
     description?: string;
@@ -20,6 +21,7 @@ export declare class UpdateProductDto {
     stock?: number;
     status?: 'PUBLISHED' | 'DRAFT';
     isPopular?: boolean;
+    deliveryOptions?: ProductDeliveryOptionDto[];
     deliveryType?: 'FREE' | 'CHARGED';
     deliveryCharge?: number | null;
     isComingSoon?: boolean;

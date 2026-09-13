@@ -4,6 +4,7 @@ import { getCountryCodeFromHeaders } from '../common/http/request-ip';
 
 export const PAYMENT_METHOD_COD = 'Cash on Delivery (COD)';
 export const PAYMENT_METHOD_ONLINE = 'Online Payment (Card)';
+export const PAYMENT_METHOD_PARTIAL = 'Partial Online + Cash on Delivery';
 
 export function normalizePaymentMethod(method: string | undefined | null): string {
   return method?.trim() || PAYMENT_METHOD_COD;
@@ -14,12 +15,27 @@ export function isCashOnDeliveryPayment(method: string | undefined | null): bool
     return true;
   }
 
+  if (isPartialOnlinePaymentMethod(method)) {
+    return false;
+  }
+
   const normalized = method.trim().toLowerCase();
   return (
     normalized.includes('cash on delivery') ||
     normalized.includes('(cod)') ||
     normalized === 'cod'
   );
+}
+
+export function isPartialOnlinePaymentMethod(
+  method: string | undefined | null,
+): boolean {
+  if (!method?.trim()) {
+    return false;
+  }
+
+  const normalized = method.trim().toLowerCase();
+  return normalized.includes('partial online');
 }
 
 export function isOnlinePaymentMethod(method: string | undefined | null): boolean {

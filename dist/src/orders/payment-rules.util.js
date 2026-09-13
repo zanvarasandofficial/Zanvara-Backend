@@ -1,8 +1,9 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.PAYMENT_METHOD_ONLINE = exports.PAYMENT_METHOD_COD = void 0;
+exports.PAYMENT_METHOD_PARTIAL = exports.PAYMENT_METHOD_ONLINE = exports.PAYMENT_METHOD_COD = void 0;
 exports.normalizePaymentMethod = normalizePaymentMethod;
 exports.isCashOnDeliveryPayment = isCashOnDeliveryPayment;
+exports.isPartialOnlinePaymentMethod = isPartialOnlinePaymentMethod;
 exports.isOnlinePaymentMethod = isOnlinePaymentMethod;
 exports.resolveOrderVisitorCountry = resolveOrderVisitorCountry;
 exports.validatePaymentForCountry = validatePaymentForCountry;
@@ -10,6 +11,7 @@ const common_1 = require("@nestjs/common");
 const request_ip_1 = require("../common/http/request-ip");
 exports.PAYMENT_METHOD_COD = 'Cash on Delivery (COD)';
 exports.PAYMENT_METHOD_ONLINE = 'Online Payment (Card)';
+exports.PAYMENT_METHOD_PARTIAL = 'Partial Online + Cash on Delivery';
 function normalizePaymentMethod(method) {
     return method?.trim() || exports.PAYMENT_METHOD_COD;
 }
@@ -17,10 +19,20 @@ function isCashOnDeliveryPayment(method) {
     if (!method?.trim()) {
         return true;
     }
+    if (isPartialOnlinePaymentMethod(method)) {
+        return false;
+    }
     const normalized = method.trim().toLowerCase();
     return (normalized.includes('cash on delivery') ||
         normalized.includes('(cod)') ||
         normalized === 'cod');
+}
+function isPartialOnlinePaymentMethod(method) {
+    if (!method?.trim()) {
+        return false;
+    }
+    const normalized = method.trim().toLowerCase();
+    return normalized.includes('partial online');
 }
 function isOnlinePaymentMethod(method) {
     if (!method?.trim()) {

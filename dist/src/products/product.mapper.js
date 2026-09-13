@@ -7,6 +7,7 @@ exports.mapProductToPublic = mapProductToPublic;
 exports.slugifyName = slugifyName;
 exports.normalizeBadge = normalizeBadge;
 exports.normalizeDetailsHtml = normalizeDetailsHtml;
+const delivery_options_util_1 = require("./delivery-options.util");
 const product_fulfillment_util_1 = require("./product-fulfillment.util");
 function hasProductDiscount(product) {
     return (product.priceAfterDiscount != null &&
@@ -68,6 +69,7 @@ function mapProductToPublic(product) {
         stock: product.stock,
         deliveryType: product.deliveryType ?? 'FREE',
         deliveryCharge: product.deliveryType === 'CHARGED' ? product.deliveryCharge : null,
+        deliveryOptions: (0, delivery_options_util_1.resolveDeliveryOptionsFromProduct)(product),
         isComingSoon: Boolean(product.isComingSoon),
         availableAt: product.availableAt?.toISOString() ?? null,
         isPreOrder: Boolean(product.isPreOrder),

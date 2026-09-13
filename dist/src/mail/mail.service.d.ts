@@ -27,6 +27,7 @@ export declare class MailService implements OnModuleInit {
             phone: string;
             address: string;
             city: string;
+            country?: string;
             notes?: string;
         };
         createdAt: string;

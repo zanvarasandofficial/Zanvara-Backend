@@ -4,6 +4,7 @@ export declare class CreateOrderItemDto {
     price: number;
     quantity: number;
     image?: string;
+    deliveryOptionId?: string;
 }
 export declare class CreateOrderCustomerDto {
     fullName: string;
@@ -11,6 +12,7 @@ export declare class CreateOrderCustomerDto {
     phone: string;
     address: string;
     city: string;
+    country: string;
     notes?: string;
 }
 export declare class CreateOrderDto {
@@ -18,6 +20,8 @@ export declare class CreateOrderDto {
     subtotal: number;
     deliveryTotal: number;
     total: number;
+    onlinePaymentDue?: number;
+    balanceOnDelivery?: number;
     paymentMethod?: string;
     displayCurrency?: string;
     exchangeRate?: number;

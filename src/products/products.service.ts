@@ -9,6 +9,7 @@ import { CloudinaryService } from '../cloudinary/cloudinary.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
+import { resolveProductDeliveryInput } from './delivery-options.util';
 import {
   getDiscountPercent,
   hasProductDiscount,
@@ -107,29 +108,12 @@ export class ProductsService {
     };
   }
 
-  private validateDelivery(
-    deliveryType: string,
-    deliveryCharge?: number | null,
-  ) {
-    if (deliveryType === 'CHARGED') {
-      if (deliveryCharge == null || deliveryCharge <= 0) {
-        throw new BadRequestException(
-          'Delivery charge is required when delivery is not free',
-        );
-      }
-    }
-  }
-
-  private resolveDelivery(
-    deliveryType?: string,
-    deliveryCharge?: number | null,
-  ) {
-    const type = deliveryType === 'CHARGED' ? 'CHARGED' : 'FREE';
-
-    return {
-      deliveryType: type,
-      deliveryCharge: type === 'CHARGED' ? deliveryCharge ?? null : null,
-    };
+  private resolveProductDelivery(dto: {
+    deliveryOptions?: unknown[] | null;
+    deliveryType?: string;
+    deliveryCharge?: number | null;
+  }) {
+    return resolveProductDeliveryInput(dto);
   }
 
   private resolveComingSoonForCreate(
@@ -372,9 +356,7 @@ export class ProductsService {
   async createProduct(dto: CreateProductDto) {
     this.validatePricing(dto.originalPrice, dto.priceAfterDiscount);
     this.validateUsdPricing(dto.originalPriceUsd, dto.priceAfterDiscountUsd);
-    this.validateDelivery(dto.deliveryType, dto.deliveryCharge);
-
-    const delivery = this.resolveDelivery(dto.deliveryType, dto.deliveryCharge);
+    const delivery = this.resolveProductDelivery(dto);
     const fulfillment = this.resolveFulfillmentForCreate(dto);
     const slug = await this.createUniqueSlug(dto.name);
     const usdPricing = this.normalizeUsdPricingFields(
@@ -409,6 +391,7 @@ export class ProductsService {
           isPopular: dto.isPopular,
           deliveryType: delivery.deliveryType,
           deliveryCharge: delivery.deliveryCharge,
+          deliveryOptions: delivery.deliveryOptions,
           isComingSoon: fulfillment.isComingSoon,
           availableAt: fulfillment.availableAt,
           isPreOrder: fulfillment.isPreOrder,
@@ -459,16 +442,16 @@ export class ProductsService {
 
     this.validateUsdPricing(originalPriceUsd, priceAfterDiscountUsd);
 
-    const nextDeliveryType =
-      dto.deliveryType ?? existing.deliveryType ?? 'FREE';
-    const nextDeliveryCharge =
-      dto.deliveryCharge !== undefined
-        ? dto.deliveryCharge
-        : existing.deliveryCharge;
-
-    this.validateDelivery(nextDeliveryType, nextDeliveryCharge);
-
-    const delivery = this.resolveDelivery(nextDeliveryType, nextDeliveryCharge);
+    const delivery = this.resolveProductDelivery({
+      deliveryOptions:
+        dto.deliveryOptions ??
+        (existing.deliveryOptions as unknown[] | null | undefined),
+      deliveryType: dto.deliveryType ?? existing.deliveryType ?? 'FREE',
+      deliveryCharge:
+        dto.deliveryCharge !== undefined
+          ? dto.deliveryCharge
+          : existing.deliveryCharge,
+    });
     const fulfillment = this.resolveFulfillmentForUpdate(dto, existing);
 
     if (
@@ -550,6 +533,7 @@ export class ProductsService {
         isPopular: dto.isPopular ?? existing.isPopular,
         deliveryType: delivery.deliveryType,
         deliveryCharge: delivery.deliveryCharge,
+        deliveryOptions: delivery.deliveryOptions,
         isComingSoon: fulfillment.isComingSoon,
         availableAt: fulfillment.availableAt,
         isPreOrder: fulfillment.isPreOrder,
@@ -608,9 +592,13 @@ export class ProductsService {
     return products.map(mapProductToPublic);
   }
 
-  async findPublishedById(id: string) {
+  async findPublishedById(idOrSlug: string) {
+    const key = idOrSlug.trim();
+    const isObjectId = /^[a-f\d]{24}$/i.test(key);
     const product = await this.prisma.product.findFirst({
-      where: { id, status: PUBLISHED },
+      where: isObjectId
+        ? { status: PUBLISHED, id: key }
+        : { status: PUBLISHED, slug: key },
     });
 
     if (!product) {
@@ -651,6 +639,11 @@ export class ProductsService {
       isPopular: product.isPopular,
       deliveryType: product.deliveryType ?? 'FREE',
       deliveryCharge: product.deliveryCharge,
+      deliveryOptions: resolveProductDeliveryInput({
+        deliveryOptions: product.deliveryOptions as unknown[] | null | undefined,
+        deliveryType: product.deliveryType,
+        deliveryCharge: product.deliveryCharge,
+      }).deliveryOptions,
       isComingSoon: product.isComingSoon,
       availableAt: product.availableAt,
       isPreOrder: product.isPreOrder,

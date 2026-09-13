@@ -13,6 +13,7 @@ exports.ProductsService = void 0;
 const common_1 = require("@nestjs/common");
 const cloudinary_service_1 = require("../cloudinary/cloudinary.service");
 const prisma_service_1 = require("../prisma/prisma.service");
+const delivery_options_util_1 = require("./delivery-options.util");
 const product_mapper_1 = require("./product.mapper");
 const ALLOWED_IMAGE_TYPES = new Set([
     'image/jpeg',
@@ -70,19 +71,8 @@ let ProductsService = class ProductsService {
             priceAfterDiscountUsd: priceAfterDiscountUsd ?? null,
         };
     }
-    validateDelivery(deliveryType, deliveryCharge) {
-        if (deliveryType === 'CHARGED') {
-            if (deliveryCharge == null || deliveryCharge <= 0) {
-                throw new common_1.BadRequestException('Delivery charge is required when delivery is not free');
-            }
-        }
-    }
-    resolveDelivery(deliveryType, deliveryCharge) {
-        const type = deliveryType === 'CHARGED' ? 'CHARGED' : 'FREE';
-        return {
-            deliveryType: type,
-            deliveryCharge: type === 'CHARGED' ? deliveryCharge ?? null : null,
-        };
+    resolveProductDelivery(dto) {
+        return (0, delivery_options_util_1.resolveProductDeliveryInput)(dto);
     }
     resolveComingSoonForCreate(isComingSoon, availableAt) {
         const enabled = Boolean(isComingSoon);
@@ -245,8 +235,7 @@ let ProductsService = class ProductsService {
     async createProduct(dto) {
         this.validatePricing(dto.originalPrice, dto.priceAfterDiscount);
         this.validateUsdPricing(dto.originalPriceUsd, dto.priceAfterDiscountUsd);
-        this.validateDelivery(dto.deliveryType, dto.deliveryCharge);
-        const delivery = this.resolveDelivery(dto.deliveryType, dto.deliveryCharge);
+        const delivery = this.resolveProductDelivery(dto);
         const fulfillment = this.resolveFulfillmentForCreate(dto);
         const slug = await this.createUniqueSlug(dto.name);
         const usdPricing = this.normalizeUsdPricingFields(dto.originalPriceUsd, dto.priceAfterDiscountUsd);
@@ -277,6 +266,7 @@ let ProductsService = class ProductsService {
                     isPopular: dto.isPopular,
                     deliveryType: delivery.deliveryType,
                     deliveryCharge: delivery.deliveryCharge,
+                    deliveryOptions: delivery.deliveryOptions,
                     isComingSoon: fulfillment.isComingSoon,
                     availableAt: fulfillment.availableAt,
                     isPreOrder: fulfillment.isPreOrder,
@@ -314,12 +304,14 @@ let ProductsService = class ProductsService {
             ? dto.priceAfterDiscountUsd
             : existing.priceAfterDiscountUsd;
         this.validateUsdPricing(originalPriceUsd, priceAfterDiscountUsd);
-        const nextDeliveryType = dto.deliveryType ?? existing.deliveryType ?? 'FREE';
-        const nextDeliveryCharge = dto.deliveryCharge !== undefined
-            ? dto.deliveryCharge
-            : existing.deliveryCharge;
-        this.validateDelivery(nextDeliveryType, nextDeliveryCharge);
-        const delivery = this.resolveDelivery(nextDeliveryType, nextDeliveryCharge);
+        const delivery = this.resolveProductDelivery({
+            deliveryOptions: dto.deliveryOptions ??
+                existing.deliveryOptions,
+            deliveryType: dto.deliveryType ?? existing.deliveryType ?? 'FREE',
+            deliveryCharge: dto.deliveryCharge !== undefined
+                ? dto.deliveryCharge
+                : existing.deliveryCharge,
+        });
         const fulfillment = this.resolveFulfillmentForUpdate(dto, existing);
         if (fulfillment.isPreOrder &&
             fulfillment.preOrderCapacity != null &&
@@ -380,6 +372,7 @@ let ProductsService = class ProductsService {
                 isPopular: dto.isPopular ?? existing.isPopular,
                 deliveryType: delivery.deliveryType,
                 deliveryCharge: delivery.deliveryCharge,
+                deliveryOptions: delivery.deliveryOptions,
                 isComingSoon: fulfillment.isComingSoon,
                 availableAt: fulfillment.availableAt,
                 isPreOrder: fulfillment.isPreOrder,
@@ -422,9 +415,13 @@ let ProductsService = class ProductsService {
         });
         return products.map(product_mapper_1.mapProductToPublic);
     }
-    async findPublishedById(id) {
+    async findPublishedById(idOrSlug) {
+        const key = idOrSlug.trim();
+        const isObjectId = /^[a-f\d]{24}$/i.test(key);
         const product = await this.prisma.product.findFirst({
-            where: { id, status: PUBLISHED },
+            where: isObjectId
+                ? { status: PUBLISHED, id: key }
+                : { status: PUBLISHED, slug: key },
         });
         if (!product) {
             throw new common_1.NotFoundException('Product not found');
@@ -461,6 +458,11 @@ let ProductsService = class ProductsService {
             isPopular: product.isPopular,
             deliveryType: product.deliveryType ?? 'FREE',
             deliveryCharge: product.deliveryCharge,
+            deliveryOptions: (0, delivery_options_util_1.resolveProductDeliveryInput)({
+                deliveryOptions: product.deliveryOptions,
+                deliveryType: product.deliveryType,
+                deliveryCharge: product.deliveryCharge,
+            }).deliveryOptions,
             isComingSoon: product.isComingSoon,
             availableAt: product.availableAt,
             isPreOrder: product.isPreOrder,

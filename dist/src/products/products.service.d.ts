@@ -10,8 +10,7 @@ export declare class ProductsService {
     private validatePricing;
     private validateUsdPricing;
     private normalizeUsdPricingFields;
-    private validateDelivery;
-    private resolveDelivery;
+    private resolveProductDelivery;
     private resolveComingSoonForCreate;
     private resolveComingSoonForUpdate;
     private resolvePreOrderFields;
@@ -50,6 +49,7 @@ export declare class ProductsService {
         isPopular: boolean;
         deliveryType: string;
         deliveryCharge: number | null;
+        deliveryOptions: import("./delivery-options.util").ProductDeliveryOption[];
         isComingSoon: boolean;
         availableAt: Date | null;
         isPreOrder: boolean;
@@ -88,6 +88,7 @@ export declare class ProductsService {
         isPopular: boolean;
         deliveryType: string;
         deliveryCharge: number | null;
+        deliveryOptions: import("./delivery-options.util").ProductDeliveryOption[];
         isComingSoon: boolean;
         availableAt: Date | null;
         isPreOrder: boolean;
@@ -126,6 +127,7 @@ export declare class ProductsService {
         isPopular: boolean;
         deliveryType: string;
         deliveryCharge: number | null;
+        deliveryOptions: import("./delivery-options.util").ProductDeliveryOption[];
         isComingSoon: boolean;
         availableAt: Date | null;
         isPreOrder: boolean;
@@ -164,6 +166,7 @@ export declare class ProductsService {
         isPopular: boolean;
         deliveryType: string;
         deliveryCharge: number | null;
+        deliveryOptions: import("./delivery-options.util").ProductDeliveryOption[];
         isComingSoon: boolean;
         availableAt: Date | null;
         isPreOrder: boolean;
@@ -183,7 +186,7 @@ export declare class ProductsService {
         bestDeals: import("./product.mapper").PublicProduct[];
     }>;
     findAllPublished(): Promise<import("./product.mapper").PublicProduct[]>;
-    findPublishedById(id: string): Promise<import("./product.mapper").PublicProduct>;
+    findPublishedById(idOrSlug: string): Promise<import("./product.mapper").PublicProduct>;
     toAdminProduct(product: Product): {
         id: string;
         name: string;
@@ -212,6 +215,7 @@ export declare class ProductsService {
         isPopular: boolean;
         deliveryType: string;
         deliveryCharge: number | null;
+        deliveryOptions: import("./delivery-options.util").ProductDeliveryOption[];
         isComingSoon: boolean;
         availableAt: Date | null;
         isPreOrder: boolean;

@@ -18,6 +18,7 @@ const passport_1 = require("@nestjs/passport");
 const role_constant_1 = require("../common/constants/role.constant");
 const roles_decorator_1 = require("../common/decorators/roles.decorator");
 const roles_guard_1 = require("../common/guards/roles.guard");
+const update_order_payment_dto_1 = require("./dto/update-order-payment.dto");
 const update_order_status_dto_1 = require("./dto/update-order-status.dto");
 const orders_service_1 = require("./orders.service");
 let AdminOrdersController = class AdminOrdersController {
@@ -33,6 +34,9 @@ let AdminOrdersController = class AdminOrdersController {
     }
     updateStatus(id, dto) {
         return this.ordersService.updateStatusAdmin(id, dto);
+    }
+    updatePayment(id, dto) {
+        return this.ordersService.updatePaymentAdmin(id, dto);
     }
 };
 exports.AdminOrdersController = AdminOrdersController;
@@ -57,6 +61,14 @@ __decorate([
     __metadata("design:paramtypes", [String, update_order_status_dto_1.UpdateOrderStatusDto]),
     __metadata("design:returntype", void 0)
 ], AdminOrdersController.prototype, "updateStatus", null);
+__decorate([
+    (0, common_1.Patch)(':id/payment'),
+    __param(0, (0, common_1.Param)('id')),
+    __param(1, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, update_order_payment_dto_1.UpdateOrderPaymentDto]),
+    __metadata("design:returntype", void 0)
+], AdminOrdersController.prototype, "updatePayment", null);
 exports.AdminOrdersController = AdminOrdersController = __decorate([
     (0, common_1.Controller)('admin/orders'),
     (0, common_1.UseGuards)((0, passport_1.AuthGuard)('jwt'), roles_guard_1.RolesGuard),

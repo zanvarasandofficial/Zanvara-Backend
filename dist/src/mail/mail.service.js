@@ -130,7 +130,7 @@ let MailService = MailService_1 = class MailService {
             `Name: ${order.customer.fullName}`,
             `Email: ${order.customer.email}`,
             `Phone: ${order.customer.phone}`,
-            `Address: ${order.customer.address}, ${order.customer.city}`,
+            `Address: ${order.customer.address}, ${order.customer.city}${order.customer.country ? `, ${order.customer.country}` : ''}`,
             order.customer.notes ? `Notes: ${order.customer.notes}` : null,
             '',
             'Items',
@@ -164,7 +164,7 @@ let MailService = MailService_1 = class MailService {
         <p style="margin:0"><strong>Name:</strong> ${order.customer.fullName}</p>
         <p style="margin:0"><strong>Email:</strong> ${order.customer.email}</p>
         <p style="margin:0"><strong>Phone:</strong> ${order.customer.phone}</p>
-        <p style="margin:0"><strong>Address:</strong> ${order.customer.address}, ${order.customer.city}</p>
+        <p style="margin:0"><strong>Address:</strong> ${order.customer.address}, ${order.customer.city}${order.customer.country ? `, ${order.customer.country}` : ''}</p>
         ${order.customer.notes
             ? `<p style="margin:0"><strong>Notes:</strong> ${order.customer.notes}</p>`
             : ''}

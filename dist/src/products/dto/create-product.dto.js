@@ -10,7 +10,9 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.CreateProductDto = void 0;
+const class_transformer_1 = require("class-transformer");
 const class_validator_1 = require("class-validator");
+const product_delivery_option_dto_1 = require("./product-delivery-option.dto");
 class CreateProductDto {
     name;
     description;
@@ -33,6 +35,7 @@ class CreateProductDto {
     stock;
     status;
     isPopular;
+    deliveryOptions;
     deliveryType;
     deliveryCharge;
     isComingSoon;
@@ -152,11 +155,19 @@ __decorate([
     __metadata("design:type", Boolean)
 ], CreateProductDto.prototype, "isPopular", void 0);
 __decorate([
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsArray)(),
+    (0, class_validator_1.ValidateNested)({ each: true }),
+    (0, class_transformer_1.Type)(() => product_delivery_option_dto_1.ProductDeliveryOptionDto),
+    __metadata("design:type", Array)
+], CreateProductDto.prototype, "deliveryOptions", void 0);
+__decorate([
+    (0, class_validator_1.ValidateIf)((dto) => !dto.deliveryOptions?.length),
     (0, class_validator_1.IsIn)(['FREE', 'CHARGED']),
     __metadata("design:type", String)
 ], CreateProductDto.prototype, "deliveryType", void 0);
 __decorate([
-    (0, class_validator_1.ValidateIf)((dto) => dto.deliveryType === 'CHARGED'),
+    (0, class_validator_1.ValidateIf)((dto) => !dto.deliveryOptions?.length && dto.deliveryType === 'CHARGED'),
     (0, class_validator_1.IsNumber)(),
     (0, class_validator_1.Min)(0.01),
     __metadata("design:type", Object)

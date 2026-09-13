@@ -30,6 +30,10 @@ export class CreateOrderItemDto {
   @IsOptional()
   @IsString()
   image?: string;
+
+  @IsOptional()
+  @IsString()
+  deliveryOptionId?: string;
 }
 
 export class CreateOrderCustomerDto {
@@ -51,6 +55,10 @@ export class CreateOrderCustomerDto {
   @IsString()
   @MinLength(2)
   city!: string;
+
+  @IsString()
+  @MinLength(2)
+  country!: string;
 
   @IsOptional()
   @IsString()
@@ -74,6 +82,16 @@ export class CreateOrderDto {
   @IsNumber()
   @Min(0)
   total!: number;
+
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
+  onlinePaymentDue?: number;
+
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
+  balanceOnDelivery?: number;
 
   @IsOptional()
   @IsString()

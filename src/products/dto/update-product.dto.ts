@@ -1,4 +1,4 @@
-import { Transform } from 'class-transformer';
+import { Transform, Type } from 'class-transformer';
 import {
   IsArray,
   IsBoolean,
@@ -12,7 +12,9 @@ import {
   Min,
   MinLength,
   ValidateIf,
+  ValidateNested,
 } from 'class-validator';
+import { ProductDeliveryOptionDto } from './product-delivery-option.dto';
 
 export class UpdateProductDto {
   @IsOptional()
@@ -113,10 +115,16 @@ export class UpdateProductDto {
   isPopular?: boolean;
 
   @IsOptional()
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => ProductDeliveryOptionDto)
+  deliveryOptions?: ProductDeliveryOptionDto[];
+
+  @IsOptional()
   @IsIn(['FREE', 'CHARGED'])
   deliveryType?: 'FREE' | 'CHARGED';
 
-  @ValidateIf((dto) => dto.deliveryType === 'CHARGED')
+  @ValidateIf((dto) => !dto.deliveryOptions?.length && dto.deliveryType === 'CHARGED')
   @IsNumber()
   @Min(0.01)
   deliveryCharge?: number | null;

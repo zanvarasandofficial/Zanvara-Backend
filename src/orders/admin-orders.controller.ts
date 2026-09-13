@@ -10,6 +10,7 @@ import { AuthGuard } from '@nestjs/passport';
 import { Role } from '../common/constants/role.constant';
 import { Roles } from '../common/decorators/roles.decorator';
 import { RolesGuard } from '../common/guards/roles.guard';
+import { UpdateOrderPaymentDto } from './dto/update-order-payment.dto';
 import { UpdateOrderStatusDto } from './dto/update-order-status.dto';
 import { OrdersService } from './orders.service';
 
@@ -32,5 +33,10 @@ export class AdminOrdersController {
   @Patch(':id/status')
   updateStatus(@Param('id') id: string, @Body() dto: UpdateOrderStatusDto) {
     return this.ordersService.updateStatusAdmin(id, dto);
+  }
+
+  @Patch(':id/payment')
+  updatePayment(@Param('id') id: string, @Body() dto: UpdateOrderPaymentDto) {
+    return this.ordersService.updatePaymentAdmin(id, dto);
   }
 }

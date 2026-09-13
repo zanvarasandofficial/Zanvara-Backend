@@ -18,6 +18,7 @@ class CreateOrderItemDto {
     price;
     quantity;
     image;
+    deliveryOptionId;
 }
 exports.CreateOrderItemDto = CreateOrderItemDto;
 __decorate([
@@ -45,12 +46,18 @@ __decorate([
     (0, class_validator_1.IsString)(),
     __metadata("design:type", String)
 ], CreateOrderItemDto.prototype, "image", void 0);
+__decorate([
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)(),
+    __metadata("design:type", String)
+], CreateOrderItemDto.prototype, "deliveryOptionId", void 0);
 class CreateOrderCustomerDto {
     fullName;
     email;
     phone;
     address;
     city;
+    country;
     notes;
 }
 exports.CreateOrderCustomerDto = CreateOrderCustomerDto;
@@ -79,6 +86,11 @@ __decorate([
     __metadata("design:type", String)
 ], CreateOrderCustomerDto.prototype, "city", void 0);
 __decorate([
+    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.MinLength)(2),
+    __metadata("design:type", String)
+], CreateOrderCustomerDto.prototype, "country", void 0);
+__decorate([
     (0, class_validator_1.IsOptional)(),
     (0, class_validator_1.IsString)(),
     __metadata("design:type", String)
@@ -88,6 +100,8 @@ class CreateOrderDto {
     subtotal;
     deliveryTotal;
     total;
+    onlinePaymentDue;
+    balanceOnDelivery;
     paymentMethod;
     displayCurrency;
     exchangeRate;
@@ -116,6 +130,18 @@ __decorate([
     (0, class_validator_1.Min)(0),
     __metadata("design:type", Number)
 ], CreateOrderDto.prototype, "total", void 0);
+__decorate([
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsNumber)(),
+    (0, class_validator_1.Min)(0),
+    __metadata("design:type", Number)
+], CreateOrderDto.prototype, "onlinePaymentDue", void 0);
+__decorate([
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsNumber)(),
+    (0, class_validator_1.Min)(0),
+    __metadata("design:type", Number)
+], CreateOrderDto.prototype, "balanceOnDelivery", void 0);
 __decorate([
     (0, class_validator_1.IsOptional)(),
     (0, class_validator_1.IsString)(),

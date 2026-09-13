@@ -12,7 +12,9 @@ import {
   Min,
   MinLength,
   ValidateIf,
+  ValidateNested,
 } from 'class-validator';
+import { ProductDeliveryOptionDto } from './product-delivery-option.dto';
 
 export class CreateProductDto {
   @IsString()
@@ -102,10 +104,17 @@ export class CreateProductDto {
   @IsBoolean()
   isPopular!: boolean;
 
-  @IsIn(['FREE', 'CHARGED'])
-  deliveryType!: 'FREE' | 'CHARGED';
+  @IsOptional()
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => ProductDeliveryOptionDto)
+  deliveryOptions?: ProductDeliveryOptionDto[];
 
-  @ValidateIf((dto) => dto.deliveryType === 'CHARGED')
+  @ValidateIf((dto) => !dto.deliveryOptions?.length)
+  @IsIn(['FREE', 'CHARGED'])
+  deliveryType?: 'FREE' | 'CHARGED';
+
+  @ValidateIf((dto) => !dto.deliveryOptions?.length && dto.deliveryType === 'CHARGED')
   @IsNumber()
   @Min(0.01)
   deliveryCharge?: number | null;
